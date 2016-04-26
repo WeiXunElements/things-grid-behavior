@@ -1,0 +1,27 @@
+{
+  "name": "things-grid-behavior",
+  "version": "0.0.1",
+  "authors": [
+    "Hatio Lab. <heartyoh@hatiolab.com>"
+  ],
+  "description": "Providing a dataludi grid's behaviors.",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "seed"
+  ],
+  "main": "things-grid-behavior.html",
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/ThingsElements/things-grid-behavior.html/",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "^4.0.0"
+  }
+}

@@ -1,0 +1,139 @@
+<script src='../../../bower_components/jszip/dist/jszip.min.js'></script>
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../things-ajax/things-ajax.html">
+
+<script>
+
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 행을 추가하거나 삭제하거나 셀 편집을 통해 데이터를 업데이트해서 
+	 * 한꺼번에 저장(Create, Update, Delete)하는 기능을 제공하는 그리드 Behavior 
+	 *
+	 * @polymerBehavior Things.GridSaveBehavior
+	 */
+	Things.GridSaveBehavior = {
+
+		properties: {
+			/**
+			 * 저장(Multiple Update)할 서버 측 URL
+			 */
+			gridSaveAction: {
+				type: String
+			}
+
+			/**
+			 * 그리드 데이터 Save(저장/삭제/추가) 액션이 성공시 발생하는 이벤트
+			 *
+			 * @event things-grid-save-success
+			 */
+			/**
+			 * 그리드 데이터 Save(저장/삭제/추가) 액션시 에러 발생시 발생하는 이벤트
+			 *
+			 * @event things-grid-save-error
+			 */
+			/**
+			 * 그리드 Save(저장/삭제/추가) 로직 수행 전 발생하는 이벤트. 
+			 * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+			 *
+			 * @event things-grid-pre-save
+			 */
+			/**
+			 * 그리드 데이터 Save(저장/삭제/추가) 액션이 성공시 발생하는 이벤트
+			 *
+			 * @event things-grid-save-success
+			 */
+			/**
+			 * 그리드 데이터 Save(저장/삭제/추가) 액션시 에러 발생시 발생하는 이벤트
+			 *
+			 * @event things-grid-save-error
+			 */			 	
+		},
+
+		listeners: {
+			'things-grid-configured' : '_initializeSaveBehavior'
+		},
+
+		/**
+		 * 그리드 구성이 완료된 후 GridSaveBehavior를 initialize 한다.
+		 *
+		 * @param {Object} e things-grid-configured 이벤트
+		 */
+		_initializeSaveBehavior: function(e) {
+			if(this.grid && this.isButtonExist('save-btn')) {
+				var evt = this.fire('things-grid-save-configure', this.grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					this.grid.editOptions().setUpdatable(true);
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'save-btn-tap', 'saveGridData');
+					this.fire('things-grid-save-configured', this.grid);
+				}
+			}
+		},
+
+		/**
+		 * 그리드의 변경된 데이터를 감지하여 서버로 한꺼번에 Create/Update/Delete 요청을 한다.
+		 *
+		 * @param {Object} e button tap event
+		 */
+		saveGridData: function(e) {
+			var changedDataList = [];
+			this.grid.commit();
+			try {
+				this._configureChangedData(changedDataList, 'created', 'c');
+				this._configureChangedData(changedDataList, 'updated', 'u');
+				this._configureChangedData(changedDataList, 'deleted', 'd');
+				this._updateMultiple(changedDataList);
+			} catch (err) {
+				this.openInfoMsg({ type : 'warning', title : 'Grid Error', text : err.message });
+			}
+		},
+
+		/**
+		 * 변경 타입(created, updated, deleted)에 따라 변경데이터를 구성한다.
+		 *
+		 * @param {Object} changedData
+		 * @param {String} changeType 'created', 'updated', 'deleted'
+		 * @param {String} changeFlag 'c', 'u', 'd'
+		 */
+		_configureChangedData: function(changedData, changeType, changeFlag) {
+			var changed = this.dataSet.getStateRows(changeType);
+			for (var i = 0; i < changed.length; i++) {
+				var changedRow = this.dataSet.getRowObject(changed[i]);
+				changedRow.cud_flag_ = changeFlag;
+				changedData.push(changedRow);
+			}
+		},
+
+		/**
+		 * Update Multiple Data 
+		 *
+		 * @param {Array} changedDataList
+		 */
+		_updateMultiple: function(changedDataList) {
+			var event = this.fire('things-grid-pre-save', {}, { cancelable: true });
+
+			if(!event.defaultPrevented) {
+				var ajax = document.createElement('things-ajax');
+				ajax.resourceUrl = this.gridSaveAction;
+				ajax.resourceAction = 'update_multiple';
+				ajax.body = changedDataList;
+				var me = this;
+
+				ajax.addEventListener('things-ajax-response', function(event) {
+					me.fire('things-grid-save-success', me.grid);
+				});
+
+				ajax.addEventListener('things-ajax-error', function(event) {
+					me.fire('things-grid-save-error', event.detail);
+				});
+
+				ajax.generateRequest();
+			}
+		}
+		
+	};
+
+</script>

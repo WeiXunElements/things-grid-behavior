@@ -1,0 +1,73 @@
+<script src='../../../bower_components/jszip/dist/jszip.min.js'></script>
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<script>
+
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 행을 추가하는 기능을 제공하는 그리드 Behavior 
+	 *
+	 * @polymerBehavior Things.GridAddrowBehavior
+	 */
+	Things.GridAddrowBehavior = {
+
+		properties: {
+			/**
+			* 그리드 Add Row Behavior 구성 전 발생하는 이벤트
+			*
+			* @event things-grid-addrow-configure
+			*/
+			/**
+			* 그리드 Add Row Behavior 구성이 완료된 후 발생하는 이벤트
+			*
+			* @event things-grid-addrow-configured
+			*/
+			/**
+			* 그리드 행 추가 전 발생하는 이벤트. 
+			* 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+			*
+			* @event things-grid-handle-addrow
+			*/
+		},
+
+		listeners: {
+			'things-grid-configured' : '_initializeAddrowBehavior',
+		},
+
+		/**
+		 * 그리드 구성이 완료된 후 GridAddRowBehavior를 initialize 한다.
+		 *
+		 * @param {Object} e things-grid-configured 이벤트
+		 */
+		_initializeAddrowBehavior: function(e) {
+			if(this.grid && this.isButtonExist('add-btn')) {
+				var evt = this.fire('things-grid-addrow-configure', this.grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					this.grid.editOptions().setInsertable(true);
+					this.grid.editOptions().setAppendable(true);
+
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'add-btn-tap', 'addGridRow');
+					this.fire('things-grid-addrow-configured', this.grid);
+				}
+			}
+		},
+
+		/**
+		 * Add Grid Row
+		 *
+		 * @param {Object} e button-tap 이벤트
+		 */
+		addGridRow: function(e) {
+			var evt = this.fire('things-grid-handle-addrow', e.detail, { cancelable: true });
+			if(!evt.defaultPrevented) {
+				// TODO model 정보로 부터 모델을 만들어서 insert
+				this.dataSet.insertRow(0, {});
+			}
+		}
+		
+	};
+
+</script>

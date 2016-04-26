@@ -1,0 +1,81 @@
+<script src='../../../bower_components/jszip/dist/jszip.min.js'></script>
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<script>
+
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 행을 삭제하는데 Soft Delete 기능을 제공하는 그리드 Behavior
+	 *
+	 * @polymerBehavior Things.GridSoftDeleterowBehavior
+	 */
+	Things.GridSoftDeleterowBehavior = {
+
+		properties: {
+			/**
+			 * 그리드 Soft Delete Row Behavior 구성 전 발생하는 이벤트
+			 *
+			 * @event things-grid-soft-deleterow-configure
+			 */
+			/**
+			 * 그리드 Soft Delete Behavior 구성이 완료된 후 발생하는 이벤트
+			 *
+			 * @event things-grid-soft-deleterow-configured
+			 */
+			/**
+			 * 그리드 행 삭제 전 발생하는 이벤트. 
+			 * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+			 *
+			 * @event things-grid-handle-deleterow
+			 */
+		},
+
+		listeners: {
+			'things-grid-configured' : '_initializeSoftDeleterowBehavior'
+		},
+
+		/**
+		 * 그리드 구성이 완료된 후 GridSoftDeleterowBehavior를 initialize 한다.
+		 *
+		 * @param {Object} e things-grid-configured 이벤트 
+		 */
+		_initializeSoftDeleterowBehavior: function(e) {
+			if(this.grid && this.isButtonExist('delete-btn')) {
+				var evt = this.fire('things-grid-soft-deleterow-configure', this.grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					this.grid.editOptions().setDeletable(true);
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'delete-btn-tap', 'removeGridRow');
+					this.fire('things-grid-soft-deleterow-configured', this.grid);
+				}
+			}
+		},
+
+		/**
+		 * Soft Delete Row. 
+		 * 실제 삭제하지 않고 플래그 처리한 후 save시 서버에서 일괄 처리한다.
+		 *
+		 * @param {Object} e button tap event
+		 */
+		removeGridRow: function(e) {
+			var evt = this.fire('things-grid-handle-deleterow', e.detail, { cancelable: true });
+			if(!evt.defaultPrevented) {
+				var rows = this.grid.getCheckedRows();
+				if (rows && rows.length > 0) {
+					var ds = this.dataSet;
+					rows.forEach(function(row) {
+						if (ds.getRowState(row.dataIndex()) == 'created') {
+							ds.setRowState(row.dataIndex(), 'createAndDeleted');
+						} else {
+							ds.setRowState(row.dataIndex(), 'deleted');
+						}
+					});
+				}
+			}
+		}
+		
+	};
+
+</script>

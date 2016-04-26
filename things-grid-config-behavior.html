@@ -1,0 +1,628 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../things-id/things-guid-behavior.html">
+<link rel="import" href="../things-msg-box/things-msgbox-behavior.html">
+
+<script src='../../../lib/grid/dataludi.lic.eval-1.2.0.min.js'></script>
+<script src='../../../lib/grid/dataludi.eval-1.2.1.min.js'></script>
+
+<script>
+
+  window.Things = window.Things || {};
+
+  /**
+   * 그리드 설정을 담당하는 Behavior. 
+   * 그리드, 그리드 모델, 그리드 컬럼에 대한 설정을 통해 그리드를 설정하고 그리는 기능까지 담당한다.
+   * Dataludi grid를 사용하고 중요한 설정사항은 크게 grid config, grid fields (model), grid columns 및 event 설정이 있다.
+   *
+   * @polymerBehavior Things.GridConfigBehavior
+   */
+  Things.GridConfigBehaviorImpl = {
+
+    properties: {
+
+      /**
+       * Grid container id
+       * Grid container id가 중복이 되면 grid가 다른 grid container에 생성될 수 있으므로 GUID로 한다.
+       */
+      gridContainerId: {
+        type: String
+      },
+
+      /**
+       * Dataludi grid
+       */
+      grid: {
+        type: Object
+      },
+
+      /**
+       * Grid mode 'canvas'/'html'
+       */
+      mode: {
+        type: String,
+        value: 'canvas'
+      },
+
+      /**
+       * Grid Config
+       */
+      config: {
+        type: Object,
+        observer: '_setGridConfig'
+      },
+
+      /**
+       * Grid Data Model - array of fields
+       */
+      model: {
+        type: Array,
+        reflectToAttribute: true // For TEST
+      },
+
+      /**
+       * Grid view column
+       */
+      columns: {
+        type: Array,
+        reflectToAttribute: true // For TEST
+      },
+      
+      /**
+       * Grid data set
+       * Default Value : DataLudi.createGridDataSet()
+       */
+      dataSet: {
+        type: Object,
+        value: function() {
+          return DataLudi.createGridDataSet();
+        }
+      },
+
+      /**
+       * 그리드에 표시할 데이터 
+       */
+      data: {
+        type: Object,
+        'observer' : '_gridDataChanged'
+      }, 
+
+      /**
+       * Grid Height
+       */
+      gridHeight: {
+        type: Number,
+        value: 300
+      },
+
+      /**
+       * 그리드 이미지 루트 
+       */
+      gridImageDir: {
+        type: String,
+        value: 'images/grid/'
+      },
+
+      /**
+       * Grid에서 사용할 이미지 리스트 
+       */
+      gridImageItems: {
+        type: Array,
+        value: function() {
+          return [
+            'iconDetail.png',
+            'ellipsis_hover.png',
+            'indicator_insert.png',
+            'menu_button.png',
+            'menu_button_hover.png'
+          ];
+        }
+      },
+
+      /**
+       * Grid Cell Styles
+       */
+      gridCellStyles: {
+        type: Array,
+        value: function() {
+          return [ {
+            expression: "state == 'c'",
+            styles: {
+              background: '#1000ff00'
+            }
+          }, {
+            expression: "(row % 2) > 0",
+            styles: {
+              background: '#20006060'
+            }
+          } ];
+        }
+      },
+
+      /**
+      * 핸들링하고자 하는 grid event를 설정한다. { grid event 명 : 'event handler 명' }
+      */
+      events : {
+        type: Object,
+        value: {
+          'onDataCellClicked': '_gridCellClicked',
+          'onDataCellDblClicked': '_gridCellDblClicked'
+        }
+      },
+
+      /**
+       * 상세보기 버튼을 활성화할 지 여부 
+       */
+      enableDetailColumn: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * 그리드 footer를 보여줄 지 여부 
+       */
+      showGridFooter: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * 선택된 row data
+       */
+      selectedRowData: {
+        type: Object,
+        notify: true,
+        readOnly: true
+      },
+
+      /**
+       * 선택된 cell data
+       */
+      selectedCellData: {
+        type: Object,
+        notify: true,
+        readOnly: true
+      }
+
+      /**
+       * 그리드 구성 전 발생하는 이벤트
+       *
+       * @event things-grid-configure
+       */
+      /**
+       * 그리드 구성이 완료된 후 발생하는 이벤트
+       *
+       * @event things-grid-configured
+       */
+      /**
+       * 그리드 구성 도중 에러가 발생한 경우 발생하는 이벤트
+       *
+       * @event things-grid-configure-failed
+       */
+      /**
+       * 그리드 이벤트 Behavior 구성 전 발생하는 이벤트
+       *
+       * @event things-grid-event-configure
+       */
+      /**
+       * 그리드 이벤트 Behavior 구성이 완료된 후 발생하는 이벤트
+       *
+       * @event things-grid-event-configured
+       */
+      /**
+       * 그리드 Resize 전 발생하는 이벤트
+       *
+       * @event things-grid-resize
+       */
+      /**
+       * 그리드 Resize 후 발생하는 이벤트
+       *
+       * @event things-grid-resized
+       */
+      /**
+       * 그리드 Data 변경 전 발생하는 이벤트
+       *
+       * @event things-grid-data-change
+       */
+      /**
+       * 그리드 Data 변경 후 발생하는 이벤트
+       *
+       * @event things-grid-data-changed
+       */
+      /**
+       * 그리드 상세 버튼이 클릭 되었을 경우 발생하는 이벤트
+       *
+       * @event things-grid-detail-tap
+       */
+      /**
+       * 그리드 Row Data가 선택되었을 경우 발생하는 이벤트
+       *
+       * @event things-grid-row-data-select
+       */
+      /**
+       * 그리드 Cell Data가 선택되었을 경우 발생하는 이벤트
+       *
+       * @event things-grid-cell-data-select
+       */
+      /**
+       * 그리드 셀 중에서 Resource Column 속성인 Resource Column을 Edit하고자 하는 경우 발생하는 이벤트
+       * 외부에서는 이 이벤트를 받아서 사용자가 데이터를 선택할 수 있도록 Resource Selector 창을 띄운다.
+       *
+       * @event things-grid-resource-column-edit
+       */
+    },
+
+    listeners: {
+      'iron-resize': '_gridScreenResizeHandler'
+    },    
+
+    observers: [
+      '_configurationsChanged(model, columns)'
+    ],
+
+    /**
+     * Life Cycle - Detached
+     */
+    detached: function() {
+      this.clearGrid();
+    },
+
+    /**
+     * 그리드 설정이 모두 완료되었다면 Dataludi Grid를 initialize한다.
+     */
+    initializeGrid: function() {
+      if(this.grid || !this.model || !this.columns) return;
+      
+      if(!this.gridContainerId || this.gridContainerId == '') {
+        this.gridContainerId = this.generateGuid();  
+      }
+
+      if(!this.parentNode.offsetWidth || this.parentNode.offsetWidth == 0) {
+        return;
+      }
+
+      DataLudi.setRootContext('');
+      DataLudi.setAssetRoot(this.gridImageDir);
+      this.grid = DataLudi.createGridView(this.gridContainerId, null, false);
+      this.grid.setDataSource(this.dataSet);
+      this.grid.registerImageList({
+        name: 'images',
+        root: this.gridImageDir,
+        items: this.gridImageItems});
+      this.grid.body().setCellDynamicStyles(this.gridCellStyles);
+      this.grid.footer().setVisible(this.showGridFooter);      
+
+      this.grid._container_ = this;
+
+      if(this.config) {
+        this._setGridConfig(this.config);
+      }
+
+      if(this.model) {
+        this._setGridModel(this.model);
+      }
+
+      if(this.columns) {
+        this._setGridColumns(this.columns);
+      }
+
+      if(this.data) {
+        this.dataSet.setRows(this.data);
+      }
+
+      if (this.grid && this.events) {
+        var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
+        if(!evt.defaultPrevented) {
+          for (var eventName in this.events) {
+            this.grid[eventName] = this[this.events[eventName]];
+          }
+
+          this.fire('things-grid-event-configured', this.grid);
+        }
+      }      
+
+      this.resizeGrid(this.parentNode, this.querySelector('div'));
+    },    
+
+    /**
+     * Clear Grid
+     */
+    clearGrid: function() {
+      this.data = null;
+      this.dataSet = null;
+      this.model = null;
+      this.columns = null;
+
+      if(this.grid && this.grid._container_) {
+        this.grid._container_ = null;
+      }
+
+      this.grid = null;
+    },
+
+    /**
+     * Get Grid Object
+     */
+    getGridObject : function () {
+      return this.grid; 
+    },
+
+    /**
+     * Get Grid DataSet
+     */
+    getGridDataSet : function () {
+      return this.dataSet; 
+    },
+
+    /**
+     * 버튼이 존재하는지 여부 체크
+     *
+     * @param {String} buttonId
+     */
+    isButtonExist: function(buttonId) {
+      if(!this.buttons || this.buttons.length == 0) return false;
+      var btns = this.buttons.filter(function(button) { return buttonId == button.id; });
+      return (!btns || btns.length == 0) ? false : true;
+    },
+
+    /**
+     * 그리드 리사이즈 - parentNode 사이즈에 따라 그리드를 리사이즈
+     *
+     * @param {Object} parentNode
+     * @param {Object} gridContainer
+     */
+    resizeGrid: function(parentNode, gridContainer) {
+      gridContainer.style.width = (parentNode.offsetWidth - 20) + 'px';
+      gridContainer.style.height = this.gridHeight + 'px';
+      this.grid.resetSize();
+    },
+
+    /**********************************************************************************
+     *                            Grid Configuration
+     **********************************************************************************
+
+    /**
+     * Configurations changed
+     *
+     * @param {Object} model
+     * @param {Object} columns
+     */
+    _configurationsChanged: function(model, columns) {
+      if(model && columns && !this.grid) {
+        var evtDetail = { config: this.config, model: model, columns: columns };
+        var evt = this.fire('things-grid-configure', evtDetail, { cancelable: true });
+        if(!evt.defaultPrevented) {
+          try {
+            this.initializeGrid();
+          } catch(e) {
+            evtDetail.error = e;
+            this.fire('things-grid-configure-failed', evtDetail);
+          }
+          
+          this.fire('things-grid-configured', evtDetail);          
+        }
+      }
+    },
+
+    /**
+     * Set Grid Model Fields
+     *
+     * @param {Array} / {String} gridModel
+     */
+    _setGridModel: function(gridModel) {
+      if(!gridModel || !this.grid) return;
+
+      var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel;
+
+      if (fields && fields.length > 0) {
+        this.dataSet.setFields(fields);
+        this.dataSet.setCheckStates(true);
+      }
+    },
+
+    /**
+     * Set Grid Column Views
+     *
+     * @param {Array} / {String} columns
+     */
+    _setGridColumns: function(columns) {
+      if(!columns || !this.grid) return;
+
+      var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns;
+
+      if(this.enableDetailColumn) {
+        gridColumns.unshift({
+          name: 'Detail',
+          width: 30,
+          imageList: 'images',
+          header: { text: ' ' },
+          renderer: { type: 'icon' },
+          styles: {
+            iconIndex: 'iconDetail.png',
+            iconLocation: 'center'
+          }
+        });
+      }
+
+      if(gridColumns.length > 0) {
+        this.grid.setColumns(gridColumns);
+      }
+
+      this.grid.resetSize();
+    },
+
+    /**
+     * Set grid initial config information
+     *
+     * @param {Object} config
+     */
+    _setGridConfig: function(config) {
+      if(!config || !this.grid) return;
+
+      var gridConfig = (typeof(config) === 'string') ? JSON.parse(config) : config;   
+
+      if(!gridConfig) {
+        this.grid.setEditOptions({ readOnly : true });
+
+      } else {
+        var grid = this.grid;
+        Object.keys(gridConfig).forEach(function(confKey) {
+          switch (confKey) {
+            case 'body':
+              grid.setBody(gridConfig[confKey]);
+              break;
+
+            case 'checkBar':
+              grid.setCheckBar(gridConfig[confKey]);
+              break;
+
+            case 'header':
+              grid.setHeader(gridConfig[confKey]);
+              break;
+
+            case 'footer':
+              grid.setFooter(gridConfig[confKey]);
+              break;
+
+            case 'columnLayout':
+              grid.setColumnLayout(gridConfig[confKey]);
+              break;
+
+            case 'dataCellRenderers':
+              grid.dataCellRenderers().addRenderers(gridConfig[confKey]);
+              break;
+
+            case 'displayOptions':
+              grid.setDisplayOptions(gridConfig[confKey]);
+              break;
+
+            case 'editOptions':
+              grid.setEditOptions(gridConfig[confKey]);
+              break;
+
+            case 'summaryMode':
+              var SummaryMode = DataLudi.SummaryMode[gridConfig[confKey].toUpperCase()];
+                grid.setSummaryMode(SummaryMode);
+              break;
+
+            case 'button':
+              gridConfig[confKey].forEach(function(button) {
+                buttons.push(button);
+              });
+              break;
+
+            case 'rowIndicator':
+              grid.rowIndicator().setProperties(gridConfig[confKey]);
+              break;
+
+            case 'gridColumnPopupMenus':
+              gridConfig[confKey].forEach(function(columnMenu) {
+                grid.registerPopupMenu(columnMenu.name, columnMenu.menu);
+              })
+              break;
+
+            default: 
+              break;
+          }
+        });
+      }
+    },
+
+    /**********************************************************************************
+     *                            Grid Event
+     **********************************************************************************
+
+    /**
+     * 데이터 변경 이벤트 핸들러 
+     */
+    _gridDataChanged: function() {
+      var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
+      if(!evt.defaultPrevented && this.data && this.dataSet) {
+        this.dataSet.setRows(this.data);
+        this.fire('things-grid-data-changed', this.data);
+      }
+    },    
+
+    /**
+     * 화면 리사이즈 시 이벤트 핸들러
+     *
+     * @param {Object} iron-resize 이벤트
+     */
+    _gridScreenResizeHandler: function(e) {
+      var evt = this.fire('things-grid-resize', this.grid, { cancelable: true });
+      if(!evt.defaultPrevented) {
+        if(this.parentNode.offsetWidth > 0 && this.grid == null) {
+          this.initializeGrid();
+        }
+
+        if(this.grid != null && this.grid._container) {
+          this.resizeGrid(this.parentNode, this.querySelector('div'));
+        }
+
+        this.fire('things-grid-resized', this.grid);
+      }
+    },
+
+    /**
+     * Grid Cell Click 이벤트 핸들러 
+     *
+     * @param {Object} grid
+     * @param {Object} cellData
+     */
+    _gridCellClicked: function(grid, cellData) {
+      if(!grid._container_ || !cellData) return;
+
+      var thingsGrid = grid._container_;
+
+      if (cellData.dataColumn() && cellData.getDataIndex(grid) >= 0) {
+        var rowIndex = cellData.getDataIndex(grid);
+        var colIndex = cellData.dataField();
+        var row = grid.focusedRow();
+
+        if(row && row.dataIndex() >= 0) {
+          thingsGrid._setSelectedRowData(row.getRowObject());
+          thingsGrid.fire('things-grid-row-data-select', thingsGrid.selectedRowData);
+        }
+
+        if(thingsGrid.dataSet && cellData.dataField() >= 0) {
+          thingsGrid._setSelectedCellData(thingsGrid.dataSet.getValue(rowIndex, colIndex));
+          thingsGrid.fire('things-grid-cell-data-select', { row: thingsGrid.selectedRowData, cell: cellData });
+        }
+
+        if(thingsGrid.enableDetailColumn && cellData.column._name == 'Detail' && 
+           cellData.column._renderer && cellData.column._renderer.type == 'icon') {
+          thingsGrid._setSelectedRowData(row.getRowObject());
+          thingsGrid.fire('things-grid-detail-tap', thingsGrid.selectedRowData);
+        }
+      }
+    },
+
+    /**
+     * Grid Cell Double Click 이벤트 핸들러 
+     *
+     * @param {Object} grid
+     * @param {Object} index
+     */
+    _gridCellDblClicked: function(grid, index) {
+      var me = grid._container_;
+      var column = index.column;
+
+      if(column._header && column._header._text == '...' && 
+         column._renderer && column._renderer.type && column._renderer.type == 'icon') {
+        var matchColumn = me.columns.filter(function(col) { return (column._name == col.name); });
+        me.fire('things-grid-resource-column-edit', { 
+          userObj : matchColumn ? matchColumn[0].userObj : null, 
+          index: index 
+        });
+      }
+    }    
+  };
+
+  Things.GridConfigBehavior = [
+    Things.GridConfigBehaviorImpl,
+    Polymer.IronResizableBehavior,
+    Things.GUIDBehavior,
+    Things.MsgBoxBehavior
+  ];
+
+</script>

@@ -1,0 +1,97 @@
+<script src='../../../bower_components/jszip/dist/jszip.min.js'></script>
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../things-import-excel/things-import-excel.html">
+
+<script>
+
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 Import 기능을 제공하는 그리드 Behavior 
+	 *
+	 * @polymerBehavior Things.GridImportBehavior
+	 */
+	Things.GridImportBehavior = {
+
+		properties: {
+			/**
+			 * import Sheet Name
+			 */
+			sheetName: {
+				type: String,
+				value: 'Sheet1'
+			}
+
+			/**
+			 * 그리드 Import Behavior 구성 전 발생하는 이벤트
+			 *
+			 * @event things-grid-import-configure
+			 */
+			/**
+			 * 그리드 Import Behavior 구성이 완료된 후 발생하는 이벤트
+			 *
+			 * @event things-grid-import-configured
+			 */
+			/**
+			 * 그리드 Import 수행 전 발생하는 이벤트. 
+			 * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+			 *
+			 * @event things-grid-handle-import
+			 */
+			/**
+			 * 그리드 Import 완료 후 발생하는 이벤트. 
+			 *
+			 * @event things-grid-import-finished
+			 */
+		},
+
+		listeners: {
+			'things-grid-configured': '_initializeImportBehavior',
+			'button-group.import-btn-tap' : 'importExcel'
+		},
+
+		/**
+		 * 그리드 구성이 완료된 후 GridImportBehavior를 initialize 한다.
+		 *
+		 * @param {Object} e things-grid-configured 이벤트
+		 */
+		_initializeImportBehavior: function(e) {
+			if(this.grid && this.isButtonExist('import-btn')) {
+				var evt = this.fire('things-grid-import-configure', this.grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'import-btn-tap', 'importExcel');
+					this.fire('things-grid-import-configured', this.grid);
+				}
+			}
+		},		
+
+		/**
+		 * Import excel
+		 *
+		 * @param {Object} e Button Tap Event
+		 */
+		importExcel: function(e) {
+			var evt = this.fire('things-grid-handle-import', e.detail, { cancelable: true });
+			if(!evt.defaultPrevented) {
+				var excelImport = document.createElement('things-import-excel');
+				excelImport.sheetName = this.sheetName;
+				var me = this;
+
+				excelImport.addEventListener('excel-process-finish', function(event) {
+					// 1. Clear grid
+					new DataLudi.DataLoader(me.dataSet).load('json', '', {});
+					// 2. Load excel data to grid, fillMode : 'insert', 'append', 'update', 기본은 'set'
+					new DataLudi.DataLoader(me.dataSet).load('json', event.detail, { fillMode: 'insert', fillPos: 0 });
+					// 3. Fire event
+					me.fire('things-grid-import-finished', event.detail);
+				});
+
+				excelImport.import();
+			}
+		}
+
+	};
+
+</script>
