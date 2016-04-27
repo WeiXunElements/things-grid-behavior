@@ -1,6 +1,6 @@
-<script src='../jszip/dist/jszip.min.js'></script>
+<script src='../../../bower_components/jszip/dist/jszip.min.js'></script>
 
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
 
 <script>
 
@@ -59,12 +59,14 @@
 		 * @param {Object} e things-grid-configured 이벤트
 		 */
 		_initializeExportBehavior: function(e) {
-			if(this.grid && this.isButtonExist('export-btn')) {
-				var evt = this.fire('things-grid-export-configure', this.grid, { cancelable: true });
+			var grid = e.detail;
+
+			if(grid && this.isButtonExist('export-btn')) {
+				var evt = this.fire('things-grid-export-configure', grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
 					// button tap 이벤트 추가 
 					this.listen(this.$['button-group'], 'export-btn-tap', 'exportExcel');
-					this.fire('things-grid-export-configured', this.grid);
+					this.fire('things-grid-export-configured', grid);
 				}
 			}
 		},
@@ -77,14 +79,20 @@
 		exportExcel: function(e) {
 			var evt = this.fire('things-grid-handle-export', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
-				new DataLudi.GridExcelExporter().export(this.grid, {
-					target: 'local',
-					fileName: this.exportFileName,
-					numberFormat: '#,##0.00',
-					datetimeFormat: 'yyyy.mm.dd'
-				});
 
-				// TODO listen export-finish event and fire event
+				if(!this.grid.data || this.grid.data.length == 0) {
+					this.openInfoMsg({ title : 'Nothing to Export', text : "There's nothing to export", type : 'info' });
+
+				} else {
+					new DataLudi.GridExcelExporter().export(this.grid, {
+						target: 'local',
+						fileName: this.exportFileName,
+						numberFormat: '#,##0.00',
+						datetimeFormat: 'yyyy.mm.dd'
+					});
+
+					// TODO listen export-finish event and fire event
+				}
 			}
 		}
 

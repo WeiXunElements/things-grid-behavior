@@ -1,10 +1,10 @@
-<link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../things-id/things-guid-behavior.html">
-<link rel="import" href="../things-msg-box-behavior/things-msg-box-behavior.html">
+<link rel="import" href="../things-msg-box/things-msgbox-behavior.html">
 
-<script src='../grid/dataludi.lic.eval.min.js'></script>
-<script src='../grid/dataludi.eval.min.js'></script>
+<script src='../../../lib/grid/dataludi.lic.eval-1.2.0.min.js'></script>
+<script src='../../../lib/grid/dataludi.eval-1.2.1.min.js'></script>
 
 <script>
 
@@ -322,6 +322,7 @@
       }      
 
       this.resizeGrid(this.parentNode, this.querySelector('div'));
+      this.fire('things-grid-configured', this.grid);
     },    
 
     /**
@@ -398,8 +399,6 @@
             evtDetail.error = e;
             this.fire('things-grid-configure-failed', evtDetail);
           }
-          
-          this.fire('things-grid-configured', evtDetail);          
         }
       }
     },
@@ -412,7 +411,7 @@
     _setGridModel: function(gridModel) {
       if(!gridModel || !this.grid) return;
 
-      var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel;
+      var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel.slice();
 
       if (fields && fields.length > 0) {
         this.dataSet.setFields(fields);
@@ -428,7 +427,7 @@
     _setGridColumns: function(columns) {
       if(!columns || !this.grid) return;
 
-      var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns;
+      var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns.slice();
 
       if(this.enableDetailColumn) {
         gridColumns.unshift({

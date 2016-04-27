@@ -1,6 +1,6 @@
-<script src='../jszip/dist/jszip.min.js'></script>
+<script src='../../../bower_components/jszip/dist/jszip.min.js'></script>
 
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
 <link rel="import" href="../things-import-excel/things-import-excel.html">
 
 <script>
@@ -57,12 +57,14 @@
 		 * @param {Object} e things-grid-configured 이벤트
 		 */
 		_initializeImportBehavior: function(e) {
-			if(this.grid && this.isButtonExist('import-btn')) {
-				var evt = this.fire('things-grid-import-configure', this.grid, { cancelable: true });
+			var grid = e.detail;
+
+			if(grid && this.isButtonExist('import-btn')) {
+				var evt = this.fire('things-grid-import-configure', grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
 					// button tap 이벤트 추가 
 					this.listen(this.$['button-group'], 'import-btn-tap', 'importExcel');
-					this.fire('things-grid-import-configured', this.grid);
+					this.fire('things-grid-import-configured', grid);
 				}
 			}
 		},		
