@@ -1,4 +1,4 @@
-<script src='../jszip/dist/jszip.min.js'></script>
+<script src='../grid/jszip.min.js'></script>
 
 <link rel="import" href="../polymer/polymer.html">
 
@@ -80,7 +80,7 @@
 			var evt = this.fire('things-grid-handle-export', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
 
-				if(!this.grid.data || this.grid.data.length == 0) {
+				if(!this.data || this.data.length == 0) {
 					this.openInfoMsg({ title : 'Nothing to Export', text : "There's nothing to export", type : 'info' });
 
 				} else {
