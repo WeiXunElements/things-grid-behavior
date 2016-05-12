@@ -26,7 +26,10 @@
        * Grid container id가 중복이 되면 grid가 다른 grid container에 생성될 수 있으므로 GUID로 한다.
        */
       gridContainerId: {
-        type: String
+        type: String,
+        value: function() {
+          return this.generateGuid();
+        }
       },
 
       /**
@@ -92,7 +95,7 @@
        */
       gridHeight: {
         type: Number,
-        value: 300
+        value: -1
       },
 
       /**
@@ -253,7 +256,7 @@
     },
 
     listeners: {
-      'iron-resize': '_gridScreenResizeHandler'
+      'iron-resize': '_gridResizeHandler'
     },    
 
     observers: [
@@ -272,57 +275,63 @@
      */
     initializeGrid: function() {
       if(this.grid || !this.model || !this.columns) return;
-      
-      if(!this.gridContainerId || this.gridContainerId == '') {
-        this.gridContainerId = this.generateGuid();  
-      }
+      var divContainer = this.querySelector('div');
 
-      if(!this.parentNode.offsetWidth || this.parentNode.offsetWidth == 0) {
-        return;
-      }
+      if(this.gridHeight > 0) {
+        divContainer.style.height = this.gridHeight + 'px';
+      } else {
+        if(!divContainer.offsetHeight || divContainer.offsetHeight == 0) return;
+      }     
 
-      DataLudi.setRootContext('');
-      DataLudi.setAssetRoot(this.gridImageDir);
-      this.grid = DataLudi.createGridView(this.gridContainerId, null, false);
-      this.grid.setDataSource(this.dataSet);
-      this.grid.registerImageList({
-        name: 'images',
-        root: this.gridImageDir,
-        items: this.gridImageItems});
-      this.grid.body().setCellDynamicStyles(this.gridCellStyles);
-      this.grid.footer().setVisible(this.showGridFooter);      
+      try {
+        DataLudi.setRootContext('');
+        DataLudi.setAssetRoot(this.gridImageDir);
+        this.grid = DataLudi.createGridView(this.gridContainerId, null, false);
+        this.grid.setDataSource(this.dataSet);
+        this.grid.registerImageList({
+          name: 'images',
+          root: this.gridImageDir,
+          items: this.gridImageItems});
+        this.grid.body().setCellDynamicStyles(this.gridCellStyles);
+        this.grid.footer().setVisible(this.showGridFooter);      
 
-      this.grid._container_ = this;
+        this.grid._container_ = this;
 
-      if(this.config) {
-        this._setGridConfig(this.config);
-      }
-
-      if(this.model) {
-        this._setGridModel(this.model);
-      }
-
-      if(this.columns) {
-        this._setGridColumns(this.columns);
-      }
-
-      if(this.data) {
-        this.dataSet.setRows(this.data);
-      }
-
-      if (this.grid && this.events) {
-        var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
-        if(!evt.defaultPrevented) {
-          for (var eventName in this.events) {
-            this.grid[eventName] = this[this.events[eventName]];
-          }
-
-          this.fire('things-grid-event-configured', this.grid);
+        if(this.config) {
+          this._setGridConfig(this.config);
         }
-      }      
 
-      this.resizeGrid(this.parentNode, this.querySelector('div'));
-      this.fire('things-grid-configured', this.grid);
+        if(this.model) {
+          this._setGridModel(this.model);
+        }
+
+        if(this.columns) {
+          this._setGridColumns(this.columns);
+        }
+
+        if(this.data) {
+          this.dataSet.setRows(this.data);
+        }
+
+        if (this.grid && this.events) {
+          var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
+          if(!evt.defaultPrevented) {
+            for (var eventName in this.events) {
+              this.grid[eventName] = this[this.events[eventName]];
+            }
+
+            this.fire('things-grid-event-configured', this.grid);
+          }
+        }
+
+        this.resizeGrid();
+        this.fire('things-grid-configured', this.grid);
+
+      } catch(e) {
+        console.log('error: ' + e);
+        //var evtDetail = { config: this.config, model: this.model, columns: this.columns, error: e };
+        //this.fire('things-grid-configure-failed', evtDetail);
+      }
     },    
 
     /**
@@ -367,15 +376,21 @@
     },
 
     /**
-     * 그리드 리사이즈 - parentNode 사이즈에 따라 그리드를 리사이즈
-     *
-     * @param {Object} parentNode
-     * @param {Object} gridContainer
+     * 그리드 리사이즈
      */
-    resizeGrid: function(parentNode, gridContainer) {
-      gridContainer.style.width = (parentNode.offsetWidth - 20) + 'px';
-      gridContainer.style.height = this.gridHeight + 'px';
-      this.grid.resetSize();
+    resizeGrid: function() {
+      var gridContainer = this.querySelector('div');
+
+      if(this.grid && gridContainer.offsetHeight > 0) {
+        // 명시적으로 GridHeight를 설정했다면 설정한 값으로 ...
+        if(this.gridHeight == -1) {
+          // TODO 아래 한 줄은 없어도 되야 하는데 없으면 그리드가 표시가 안 됨...
+          gridContainer.style.height = gridContainer.offsetHeight + 'px';
+        }
+
+        this.grid.resetSize();
+        this.fire('things-grid-resized', this.grid);
+      }
     },
 
     /**********************************************************************************
@@ -393,12 +408,7 @@
         var evtDetail = { config: this.config, model: model, columns: columns };
         var evt = this.fire('things-grid-configure', evtDetail, { cancelable: true });
         if(!evt.defaultPrevented) {
-          try {
-            this.initializeGrid();
-          } catch(e) {
-            evtDetail.error = e;
-            this.fire('things-grid-configure-failed', evtDetail);
-          }
+          this.initializeGrid();
         }
       }
     },
@@ -446,8 +456,6 @@
       if(gridColumns.length > 0) {
         this.grid.setColumns(gridColumns);
       }
-
-      this.grid.resetSize();
     },
 
     /**
@@ -547,18 +555,16 @@
      *
      * @param {Object} iron-resize 이벤트
      */
-    _gridScreenResizeHandler: function(e) {
+    _gridResizeHandler: function(e) {
       var evt = this.fire('things-grid-resize', this.grid, { cancelable: true });
       if(!evt.defaultPrevented) {
-        if(this.parentNode.offsetWidth > 0 && this.grid == null) {
+        if(this.grid == null) {
           this.initializeGrid();
         }
 
-        if(this.grid != null && this.grid._container) {
-          this.resizeGrid(this.parentNode, this.querySelector('div'));
-        }
-
-        this.fire('things-grid-resized', this.grid);
+        /*if(this.grid != null) {
+          this.resizeGrid();
+        }*/
       }
     },
 
