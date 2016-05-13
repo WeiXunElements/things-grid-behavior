@@ -26,10 +26,7 @@
        * Grid container id가 중복이 되면 grid가 다른 grid container에 생성될 수 있으므로 GUID로 한다.
        */
       gridContainerId: {
-        type: String,
-        value: function() {
-          return this.generateGuid();
-        }
+        type: String
       },
 
       /**
@@ -264,6 +261,20 @@
     ],
 
     /**
+     * Life Cycle - Created
+     */
+    ready: function() {
+      this.gridContainerId = 'a' + this.generateGuid();
+    },
+
+    /**
+     * Life Cycle - Attached
+     */
+    attached: function() {
+      this.initializeGrid();
+    },
+
+    /**
      * Life Cycle - Detached
      */
     detached: function() {
@@ -271,22 +282,44 @@
     },
 
     /**
+     * grid initialize가 가능한 지 체크 
+     */
+    _checkInitPossible: function() {
+      if(this.grid || !this.model || !this.columns || !this.gridContainerId) 
+        return false;
+
+      var gridContainer = this.$$('#' + this.gridContainerId);
+      if(!gridContainer) 
+        return false;
+
+      if(!gridContainer.offsetHeight || gridContainer.offsetHeight == 0) {
+        if(this.gridHeight > 0) {
+          gridContainer.style.height = this.gridHeight + 'px';
+          return true;
+        }
+
+        return false;
+      }
+
+      return true;
+    },
+
+    /**
      * 그리드 설정이 모두 완료되었다면 Dataludi Grid를 initialize한다.
      */
     initializeGrid: function() {
-      if(this.grid || !this.model || !this.columns) return;
-      var divContainer = this.querySelector('div');
+      if(!this._checkInitPossible()) return;
 
-      if(this.gridHeight > 0) {
-        divContainer.style.height = this.gridHeight + 'px';
-      } else {
-        if(!divContainer.offsetHeight || divContainer.offsetHeight == 0) return;
-      }     
+      try {
+        this.grid = DataLudi.createGridView(this.gridContainerId, null, false);
+      } catch(e) {
+        console.log(e);
+        return;
+      }
 
       try {
         DataLudi.setRootContext('');
         DataLudi.setAssetRoot(this.gridImageDir);
-        this.grid = DataLudi.createGridView(this.gridContainerId, null, false);
         this.grid.setDataSource(this.dataSet);
         this.grid.registerImageList({
           name: 'images',
@@ -328,9 +361,8 @@
         this.fire('things-grid-configured', this.grid);
 
       } catch(e) {
-        console.log('error: ' + e);
-        //var evtDetail = { config: this.config, model: this.model, columns: this.columns, error: e };
-        //this.fire('things-grid-configure-failed', evtDetail);
+        var evtDetail = { config: this.config, model: this.model, columns: this.columns, error: e };
+        this.fire('things-grid-configure-failed', evtDetail);
       }
     },    
 
@@ -338,6 +370,7 @@
      * Clear Grid
      */
     clearGrid: function() {
+      this.gridContainerId = null;
       this.data = null;
       this.dataSet = null;
       this.model = null;
@@ -383,7 +416,7 @@
 
       if(this.grid && gridContainer.offsetHeight > 0) {
         // 명시적으로 GridHeight를 설정했다면 설정한 값으로 ...
-        if(this.gridHeight == -1) {
+        if(this.gridHeight <= 0) {
           // TODO 아래 한 줄은 없어도 되야 하는데 없으면 그리드가 표시가 안 됨...
           gridContainer.style.height = gridContainer.offsetHeight + 'px';
         }
@@ -562,9 +595,7 @@
           this.initializeGrid();
         }
 
-        /*if(this.grid != null) {
-          this.resizeGrid();
-        }*/
+        //if(this.grid != null) this.resizeGrid();
       }
     },
 
