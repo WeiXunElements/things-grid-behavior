@@ -311,6 +311,8 @@
       if(!this._checkInitPossible()) return;
 
       try {
+        DataLudi.setRootContext('');
+        DataLudi.setAssetRoot(this.gridImageDir);
         this.grid = DataLudi.createGridView(this.gridContainerId, null, false);
       } catch(e) {
         console.log(e);
@@ -318,8 +320,6 @@
       }
 
       try {
-        DataLudi.setRootContext('');
-        DataLudi.setAssetRoot(this.gridImageDir);
         this.grid.setDataSource(this.dataSet);
         this.grid.registerImageList({
           name: 'images',
