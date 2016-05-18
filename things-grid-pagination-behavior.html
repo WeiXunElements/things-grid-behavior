@@ -24,6 +24,14 @@
 				type: Boolean,
 				value: false
 			},
+
+			/**
+			 * Paginator를 표시할 지 여부 
+			 */
+			showPaginator: {
+				type: Boolean,
+				value: false
+			},			
 			
 			/**
 			 * Infinite Scroll 지원 여부 
@@ -114,6 +122,10 @@
 			// Add Event Listener things-paginator's properties changed
 			paginator.addEventListener("current-page-changed", function(ev) {
 				me.currentPage = this.currentPage;
+			});
+
+			paginator.addEventListener("total-page-changed", function(ev) {
+				me.showPaginator = (this.totalPage && this.totalPage > 1);
 			});
 
 			paginator.addEventListener("page-start-idx-changed", function(ev) {
