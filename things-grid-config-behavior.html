@@ -413,9 +413,9 @@
      * 그리드 리사이즈
      */
     resizeGrid: function() {
-      var gridContainer = this.querySelector('div');
+      var gridContainer = this.$$('#' + this.gridContainerId);
 
-      if(this.grid && gridContainer.offsetHeight > 0) {
+      if(gridContainer && this.grid && gridContainer.offsetHeight > 0) {
         // 명시적으로 GridHeight를 설정했다면 설정한 값으로 ...
         if(this.gridHeight <= 0) {
           // TODO 아래 한 줄은 없어도 되야 하는데 없으면 그리드가 표시가 안 됨...
@@ -578,7 +578,7 @@
      */
     _gridDataChanged: function() {
       var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
-      if(!evt.defaultPrevented && this.dataSet) {
+      if(!evt.defaultPrevented && this.data && this.dataSet) {
         this.dataSet.setRows(this.data);
         this.fire('things-grid-data-changed', this.data);
       }
