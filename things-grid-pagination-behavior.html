@@ -125,7 +125,7 @@
 			});
 
 			paginator.addEventListener("total-page-changed", function(ev) {
-				me.showPaginator = (this.totalPage && this.totalPage > 1);
+				me.showPaginator = (me.paginatable) && (this.totalPage && this.totalPage > 1);
 			});
 
 			paginator.addEventListener("page-start-idx-changed", function(ev) {
