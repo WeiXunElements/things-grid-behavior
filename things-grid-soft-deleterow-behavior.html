@@ -62,6 +62,8 @@
 		 * @param {Object} e button tap event
 		 */
 		removeGridRow: function(e) {
+			this.grid.commit();
+			
 			var evt = this.fire('things-grid-handle-deleterow', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
 				var rows = this.grid.getCheckedRows();

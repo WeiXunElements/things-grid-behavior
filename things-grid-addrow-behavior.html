@@ -63,6 +63,8 @@
 		 * @param {Object} e button-tap 이벤트
 		 */
 		addGridRow: function(e) {
+			this.grid.commit();
+			
 			var evt = this.fire('things-grid-handle-addrow', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
 				// TODO model 정보로 부터 모델을 만들어서 insert
