@@ -168,7 +168,7 @@
 			var me = this;
 
 			ajax.addEventListener('things-ajax-response', function(event) {
-				me.fire('things-grid-save-success', me.grid);
+				me.fire('things-grid-save-success', event.detail);
 			});
 
 			ajax.addEventListener('things-ajax-error', function(event) {
