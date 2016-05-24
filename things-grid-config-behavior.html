@@ -339,7 +339,8 @@
 
         this.grid.body().setCellDynamicStyles(this.gridCellStyles);
         this.grid.footer().setVisible(this.showGridFooter);
-        this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
+        if(this.fixedColumnCount > 0)
+          this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
 
         this.grid._container_ = this;
 
