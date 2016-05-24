@@ -320,12 +320,15 @@
       }
 
       try {
+        if(Things.THINGS_XMES_THEME) this.grid.loadStyles(Things.THINGS_XMES_THEME);
+
         this.grid.setDataSource(this.dataSet);
         this.grid.registerImageList({
           name: 'images',
           root: this.gridImageDir,
           items: this.gridImageItems
         });
+
         this.grid.body().setCellDynamicStyles(this.gridCellStyles);
         this.grid.footer().setVisible(this.showGridFooter);      
 
