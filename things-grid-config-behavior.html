@@ -140,6 +140,14 @@
       },
 
       /**
+       * Grid Fixed Column Count
+       */
+      fixedColumnCount: {
+        type: Number,
+        value: 4
+      },
+
+      /**
       * 핸들링하고자 하는 grid event를 설정한다. { grid event 명 : 'event handler 명' }
       */
       events : {
@@ -330,7 +338,8 @@
         });
 
         this.grid.body().setCellDynamicStyles(this.gridCellStyles);
-        this.grid.footer().setVisible(this.showGridFooter);      
+        this.grid.footer().setVisible(this.showGridFooter);
+        this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
 
         this.grid._container_ = this;
 
