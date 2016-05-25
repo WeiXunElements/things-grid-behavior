@@ -1,6 +1,6 @@
 {
   "name": "things-grid-behavior",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "authors": [
     "Hatio Lab. <heartyoh@hatiolab.com>"
   ],
@@ -21,7 +21,6 @@
     "polymer": "Polymer/polymer#^1.2.0",
     "jszip": "^3.0.0",
     "iron-resizable-behavior": "^1.0.3",
-    "grid": "dataludi/grid",
     "things-id": "ThingsElements/things-id",
     "things-msg-box-behavior": "ThingsElements/things-msg-box-behavior",
     "things-import-excel": "ThingsElements/things-import-excel",
