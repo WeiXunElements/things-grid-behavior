@@ -1,0 +1,178 @@
+<link rel="import" href="../polymer/polymer.html">
+<script src="dataludi-report.min.js"></script>
+
+<script>
+	
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 프린트 기능을 추가하기 위한 비허이비어
+	 *
+	 * @polymerBehavior Things.GridPrintBehavior
+	 */
+	Things.GridPrintBehavior = {
+		properties:{
+			/**
+			 * voucherConfig : {
+			 *   grid :{
+			 *   	
+			 *   },
+			 *   page :{ //PrintPage Class at dataludi
+			 *   	style:{
+			 *   		
+			 *   	}
+			 *   },
+			 *   pageFooter :{ 
+			 *      //모든 페이지 최 하단에 한 번씩 표시된다. 페이지 상단에는 페이지 헤더가 표시된다. 
+			 *   	height : String --> number with unit in/cm/mm/px
+			 *      items :[]/{} //data in page footer
+			 *      maxHeight : String --> number with unit in/cm/mm/px
+			 *      maxWidth : String --> number with unit in/cm/mm/px
+			 *      minHeight : String --> number with unit in/cm/mm/px
+			 *      minWidth : String --> number with unit in/cm/mm/px
+			 *      styles :{
+			 *      }
+			 *      width : String --> number with unit in/cm/mm/px
+			 *   },
+			 *   pageHeader :{
+			 *   //모든 페이지 최 상단에 한 번씩 표시된다. 페이지 하단에는 페이지 Footer가 표시된다. 
+			 *   // page footer와 같음
+			 *   },
+			 *   pageTitle :{
+			 *   모든 페이지에서 데이터 영역 위쪽에 한 번씩 표시된다. 리포트 헤더가 표시되는 경우, 리포트 헤더 아래 표시된다. 
+			 *   // page footer와 같음 
+			 *   },
+			 *   printGrid :{
+			 *   // 거의 안씀 아래와 같은 속성 있음 어떻게 사용하는지 잘 모름
+			 *   	card
+			 *   	pageColumnLayout
+			 *   	pageColumns
+			 *   	pageFill
+			 *   	pageLayout
+			 *   },
+			 *   report :{
+			 *   // 리포트 전체에 적용되는 기본 스타일 등을 포함하는 객체.리포트의 기본 폰트 등을 지정하고 싶은 경우, 이 객체의 styles를 설정한다. 이 객체를 직접 생성할 일은 없다. 
+			 *   },
+			 *   reportFooter:{
+			 *   //데이터가 표시되는 마지막 페이지 하단에 한 번 표시된다. 첫 페이지에는 리포트 Header가 표시된다. 
+			 *   // page footer와 같음
+			 *   },
+			 *   reportHeader:{
+			 *   //데이터가 표시되는 첫 페이지 상단에 한 번 표시된다. 마지막 페이지에는 리포트 Footer가 표시된다. 
+			 *   // page footer와 같음
+			 *   }
+			 * }
+			 * @type {Object}
+			 */	
+            voucherConfig: {
+                type: Object,
+                value: function() {
+                    return {}
+                }
+            },
+            /**
+             * ex : 
+             * data ==> [{
+             * 		id: "inv",
+             * 		value: {
+             * 			id: "00035",
+             * 			date: "2016/04/24",
+             * 			dueDate: "2016/05/31",
+             * 			balance: 2311,
+             * 			shipping: 12.95,
+             * 			payments: -2000
+             * 			}
+             * 	}];
+             * voucherConfig.items will be
+             * items: [
+             *      {data: "inv.id",
+             *       header: "Invoice No"}, 
+             *      {data: "inv.date",
+             *       header: "Date:"}, 
+             *      {data: "inv.dueDate",
+             *       header: "Due Date:"}, 
+             *      {data: "inv.balance",
+             *       header: "Balance Due $:",
+             *       styles: { numberFormat: "#,##0.00"}
+             *      }]
+             */
+            voucherData :{
+            	type: Array,
+            	value: function(){
+            		return []
+            	}
+            },
+            /**
+             * printOptions : {
+             * 	previewUrl
+             * 	debugPrint
+             * 	htmlDpi
+             * 	imageLoadTime
+             * 	paperHeight
+             * 	paperMarginBottom
+             * 	paperMarginLeft
+             * 	paperMarginRight
+             * 	paperMarginTop
+             * 	paperOrientation
+             * 	paperWidth
+             * 	previewHeight
+             * 	previewTitle
+             * 	previewUrl
+             * 	previewWidth
+             * }
+             * 
+             * previewUrl가 없을 경우 default로 web-root/previewer.html를 찾음
+             * @type {Object}
+             */
+            printOptions: {
+                type: Object,
+                value: function() {
+                    return {
+                    	previewUrl: 'previewer.html'
+                    };
+                }
+            },
+            /**
+             * 프리뷰만 할 것인지 아니면 프린트 까지 할 것인지
+             * true : print + preview
+             * false :  preview
+             * @type {Object}
+             */
+            isPrint:{
+            	type: Boolean,
+            	value : false
+            }
+
+		},
+
+		listeners: {
+			'things-grid-configured': '_initializePrintBehavior',
+			'button-group.print-btn-tap' : 'printGrid'
+		},
+
+		_initializePrintBehavior:function(e){
+			var grid = e.detail;
+
+			if(grid && this.isButtonExist('print-btn')) {
+				var evt = this.fire('things-grid-print-configure', grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'print-btn-tap', 'printGrid');
+					this.fire('things-grid-print-configured', grid);
+				}
+			}
+		},
+
+		printGrid:function(e){
+			var evt = this.fire('things-grid-handle-print', e.detail, { cancelable: true });
+			if(!evt.defaultPrevented) {
+				DLReport.preview(this.grid,
+								 this.voucherConfig, 
+								 this.voucherData, 
+								 this.printOptions, 
+								 this.isPrint);
+				this.fire('things-grid-print-finished', event.detail);
+			}
+		}
+	}
+</script>
