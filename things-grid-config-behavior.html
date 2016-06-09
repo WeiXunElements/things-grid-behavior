@@ -659,13 +659,41 @@
 
       if(column._header && column._header._text == '...' && 
          column._renderer && column._renderer.type && column._renderer.type == 'icon') {
-        var matchColumn = me.columns.filter(function(col) { return (column._name == col.name); });
+        var matchColumn = me.columns.filter(function(col) { return (column.name() == col.name); });
         me.fire('things-grid-resource-column-edit', { 
           userObj : matchColumn ? matchColumn[0].userObj : null, 
           index: index 
         });
+      } else if (column.styles().iconIndex() == 'date-picker') {
+        grid.commit();
+        var dataSet = grid.dataSource();
+        var row = grid.focusedRow();
+        var rowObj = row.getRowObject();
+        var dataObj = {
+          owner: me,
+          ownerGrid: grid,
+          ownerGridObj: rowObj,
+          ownerGridIdx: index.rowIndex,
+          ownerGridColumn: column.name(),
+          date: rowObj[column.name()]
+        };
+        app.$['date-picker-dialog'].dialogToggle(dataObj, me._applySelectedDate);  
       }
-    }    
+    },
+
+    /**
+     * date picker dilog 내부에서 실행되는 callback 함수
+     */
+    _applySelectedDate: function(dataObj) {
+      var grid = dataObj.ownerGrid;
+      var rowObj = dataObj.ownerGridObj;
+      var rowIdx = dataObj.ownerGridIdx;
+      var dataSet = grid.dataSource();
+
+      rowObj[dataObj.ownerGridColumn] = dataObj.date;
+      dataSet.updateRow(rowIdx, rowObj);
+      grid.refreshView();
+    }        
   };
 
   Things.GridConfigBehavior = [
