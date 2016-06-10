@@ -554,6 +554,11 @@
               grid.setEditOptions(gridConfig[confKey]);
               break;
 
+            case 'effectOptions':
+              grid.setEffectOptions(gridConfig[confKey]);
+              break;
+
+
             case 'summaryMode':
               var SummaryMode = DataLudi.SummaryMode[gridConfig[confKey].toUpperCase()];
                 grid.setSummaryMode(SummaryMode);
