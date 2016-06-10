@@ -1,0 +1,83 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script>
+
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 Import 기능을 제공하는 그리드 Behavior 
+	 *
+	 * @polymerBehavior Things.GridImportBehavior
+	 */
+	Things.GridOpenImportBehavior = {
+
+		properties: {
+			/**
+			 * import Sheet Name
+			 */
+			sheetName: {
+				type: String,
+				value: 'Sheet1'
+			}
+
+			/**
+			 * 그리드 Import Behavior 구성 전 발생하는 이벤트
+			 *
+			 * @event things-grid-import-configure
+			 */
+			/**
+			 * 그리드 Import Behavior 구성이 완료된 후 발생하는 이벤트
+			 *
+			 * @event things-grid-import-configured
+			 */
+			/**
+			 * 그리드 Import 수행 전 발생하는 이벤트. 
+			 * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+			 *
+			 * @event things-grid-handle-import
+			 */
+			/**
+			 * 그리드 Import 완료 후 발생하는 이벤트. 
+			 *
+			 * @event things-grid-import-finished
+			 */
+		},
+
+		listeners: {
+			'things-grid-configured': '_initializeOpenImportBehavior',
+			'button-group.import-btn-tap' : 'openImport'
+		},
+
+		/**
+		 * 그리드 구성이 완료된 후 GridImportBehavior를 initialize 한다.
+		 *
+		 * @param {Object} e things-grid-configured 이벤트
+		 */
+		_initializeOpenImportBehavior: function(e) {
+			var grid = e.detail;
+
+			if(grid && this.isButtonExist('open-import-btn')) {
+				var evt = this.fire('things-grid-open-import-configure', grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'open-import-btn-tap', 'openImport');
+					this.fire('things-grid-open-import-configured', grid);
+				}
+			}
+		},		
+
+		/**
+		 * Import excel
+		 *
+		 * @param {Object} e Button Tap Event
+		 */
+		openImport: function(e) {
+			var evt = this.fire('things-grid-handle-open-import', e.detail, { cancelable: true });
+			if(!evt.defaultPrevented) {
+				app.$['import-dialog'].open();
+			}
+		}
+
+	};
+
+</script>
