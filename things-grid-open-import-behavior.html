@@ -50,7 +50,7 @@
 					this.fire('things-grid-open-import-configured', grid);
 				}
 			}
-		},		
+		},
 
 		/**
 		 * Open Import Dialog
@@ -60,7 +60,8 @@
 		openImportDialog: function(e) {
 			var evt = this.fire('things-grid-handle-open-import', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
-				app.$['import-dialog'].open(this.config, this.model, this.columns);
+				var resourceUrl = this.gridSaveAction ? this.gridSaveAction.substr(0, this.gridSaveAction.lastIndexOf('/')) : '';
+				app.$['import-dialog'].open(this.config, this.model, this.columns, { title : '', resource_url : resourceUrl });
 			}
 		}
 
