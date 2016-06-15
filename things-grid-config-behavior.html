@@ -4,7 +4,6 @@
 <link rel="import" href="../things-msg-box-behavior/things-msg-box-behavior.html">
 <link rel="import" href="../things-resource-selector/things-resource-selector-behavior.html">
 
-
 <script src='dataludi.lic.min.js'></script>
 <script src='dataludi.min.js'></script>
 
@@ -491,6 +490,7 @@
       if(this.enableDetailColumn) {
         gridColumns.unshift({
           name: 'Detail',
+          editable: false,
           width: 30,
           imageList: 'images',
           header: { text: ' ' },
@@ -692,7 +692,10 @@
             date: rowObj[column.name()]
           };
           app.$['date-picker-dialog'].dialogToggle(dataObj, me._applySelectedDate);
-        }  
+        }
+
+      } else {
+        me.fire('things-grid-column-dblclicked', { grid : grid, index : index });
       }
     },
 
