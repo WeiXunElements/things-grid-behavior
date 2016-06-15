@@ -665,28 +665,32 @@
     _gridCellDblClicked: function(grid, index) {
       var me = grid._container_;
       var column = index.column;
+      grid.commit();
 
-      if(column._header && column._header._text == '...' && 
-         column._renderer && column._renderer.type && column._renderer.type == 'icon') {
+      if(column._header && column._header._text == '...' && column._renderer && column._renderer.type && column._renderer.type == 'icon') {
         var matchColumn = me.columns.filter(function(col) { return (column.name() == col.name); });
-        me.fire('things-grid-resource-column-edit', { 
-          userObj : matchColumn ? matchColumn[0].userObj : null, 
-          index: index 
-        });
+        var eventDetail = { userObj : matchColumn ? matchColumn[0].userObj : null, index: index  };
+        var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
+        if(!evt.defaultPrevented) {
+          me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
+        }
+
       } else if (column.styles().iconIndex() == 'date-picker') {
-        grid.commit();
-        var dataSet = grid.dataSource();
-        var row = grid.focusedRow();
-        var rowObj = row.getRowObject();
-        var dataObj = {
-          owner: me,
-          ownerGrid: grid,
-          ownerGridObj: rowObj,
-          ownerGridIdx: index.rowIndex,
-          ownerGridColumn: column.name(),
-          date: rowObj[column.name()]
-        };
-        app.$['date-picker-dialog'].dialogToggle(dataObj, me._applySelectedDate);  
+        var evt = me.fire('things-grid-date-column-edit', eventDetail, { cancelable: true });
+        if(!evt.defaultPrevented) {
+          var dataSet = grid.dataSource();
+          var row = grid.focusedRow();
+          var rowObj = row.getRowObject();
+          var dataObj = {
+            owner: me,
+            ownerGrid: grid,
+            ownerGridObj: rowObj,
+            ownerGridIdx: index.rowIndex,
+            ownerGridColumn: column.name(),
+            date: rowObj[column.name()]
+          };
+          app.$['date-picker-dialog'].dialogToggle(dataObj, me._applySelectedDate);
+        }  
       }
     },
 
