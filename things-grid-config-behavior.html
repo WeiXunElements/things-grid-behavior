@@ -2,6 +2,8 @@
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../things-id/things-guid-behavior.html">
 <link rel="import" href="../things-msg-box-behavior/things-msg-box-behavior.html">
+<link rel="import" href="../things-resource-selector/things-resource-selector-behavior.html">
+
 
 <script src='dataludi.lic.min.js'></script>
 <script src='dataludi.min.js'></script>
@@ -712,6 +714,7 @@
   Things.GridConfigBehavior = [
     Things.GridConfigBehaviorImpl,
     Polymer.IronResizableBehavior,
+    Things.ResourceSelectorBehavior,
     Things.GUIDBehavior,
     Things.MsgBoxBehavior
   ];
