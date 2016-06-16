@@ -584,7 +584,11 @@
 
             case 'groupBy':
               grid.groupBy(gridConfig[confKey]);
-              break;              
+              break;         
+
+            case 'options':
+              grid.setOptions(gridConfig[confKey]);           
+              break;
 
             default: 
               break;
