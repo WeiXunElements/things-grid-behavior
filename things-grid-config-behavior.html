@@ -329,7 +329,8 @@
       }
 
       try {
-        if(Things.THINGS_XMES_THEME) this.grid.loadStyles(Things.THINGS_XMES_THEME);
+        if(Things.THINGS_XMES_THEME_STYLES) this.grid.loadStyles(Things.THINGS_XMES_THEME_STYLES);
+        if(Things.THINGS_XMES_THEME_OPTIONS) this.grid.setOptions(Things.THINGS_XMES_THEME_OPTIONS);
 
         this.grid.setDataSource(this.dataSet);
         this.grid.registerImageList({
