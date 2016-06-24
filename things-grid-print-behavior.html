@@ -158,7 +158,7 @@
 			 */
 			isPrint: {
 				type: Boolean,
-				value: false
+				value: true
 			}
 		},
 
@@ -166,7 +166,7 @@
 			'things-grid-configured': '_initializePrintBehavior'
 		},
 
-		_initializePrintBehavior:function(e){
+		_initializePrintBehavior: function(e) {
 			var grid = e.detail;
 
 			if(grid && this.isButtonExist('print-btn')) {
