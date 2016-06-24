@@ -1,4 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
+
 <script src="dataludi-report.min.js"></script>
 
 <script>
@@ -6,148 +7,163 @@
 	window.Things = window.Things || {};
 
 	/**
-	 * 그리드에 프린트 기능을 추가하기 위한 비허이비어
+	 * 그리드에 전표 프린트 기능을 추가하기 위한 Behavior
 	 *
 	 * @polymerBehavior Things.GridPrintBehavior
 	 */
 	Things.GridPrintBehavior = {
-		properties:{
-			/**
-			 * voucherConfig : {
-			 *   grid :{
-			 *   	
-			 *   },
-			 *   page :{ //PrintPage Class at dataludi
-			 *   	style:{
-			 *   		
-			 *   	}
-			 *   },
-			 *   pageFooter :{ 
-			 *      //모든 페이지 최 하단에 한 번씩 표시된다. 페이지 상단에는 페이지 헤더가 표시된다. 
-			 *   	height : String --> number with unit in/cm/mm/px
-			 *      items :[]/{} //data in page footer
-			 *      maxHeight : String --> number with unit in/cm/mm/px
-			 *      maxWidth : String --> number with unit in/cm/mm/px
-			 *      minHeight : String --> number with unit in/cm/mm/px
-			 *      minWidth : String --> number with unit in/cm/mm/px
-			 *      styles :{
-			 *      }
-			 *      width : String --> number with unit in/cm/mm/px
-			 *   },
-			 *   pageHeader :{
-			 *   //모든 페이지 최 상단에 한 번씩 표시된다. 페이지 하단에는 페이지 Footer가 표시된다. 
-			 *   // page footer와 같음
-			 *   },
-			 *   pageTitle :{
-			 *   모든 페이지에서 데이터 영역 위쪽에 한 번씩 표시된다. 리포트 헤더가 표시되는 경우, 리포트 헤더 아래 표시된다. 
-			 *   // page footer와 같음 
-			 *   },
-			 *   printGrid :{
-			 *   // 거의 안씀 아래와 같은 속성 있음 어떻게 사용하는지 잘 모름
-			 *   	card
-			 *   	pageColumnLayout
-			 *   	pageColumns
-			 *   	pageFill
-			 *   	pageLayout
-			 *   },
-			 *   report :{
-			 *   // 리포트 전체에 적용되는 기본 스타일 등을 포함하는 객체.리포트의 기본 폰트 등을 지정하고 싶은 경우, 이 객체의 styles를 설정한다. 이 객체를 직접 생성할 일은 없다. 
-			 *   },
-			 *   reportFooter:{
-			 *   //데이터가 표시되는 마지막 페이지 하단에 한 번 표시된다. 첫 페이지에는 리포트 Header가 표시된다. 
-			 *   // page footer와 같음
-			 *   },
-			 *   reportHeader:{
-			 *   //데이터가 표시되는 첫 페이지 상단에 한 번 표시된다. 마지막 페이지에는 리포트 Footer가 표시된다. 
-			 *   // page footer와 같음
-			 *   }
-			 * }
-			 * @type {Object}
-			 */	
-            voucherConfig: {
-                type: Object,
-                value: function() {
-                    return {}
-                }
-            },
-            /**
-             * ex : 
-             * data ==> [{
-             * 		id: "inv",
-             * 		value: {
-             * 			id: "00035",
-             * 			date: "2016/04/24",
-             * 			dueDate: "2016/05/31",
-             * 			balance: 2311,
-             * 			shipping: 12.95,
-             * 			payments: -2000
-             * 			}
-             * 	}];
-             * voucherConfig.items will be
-             * items: [
-             *      {data: "inv.id",
-             *       header: "Invoice No"}, 
-             *      {data: "inv.date",
-             *       header: "Date:"}, 
-             *      {data: "inv.dueDate",
-             *       header: "Due Date:"}, 
-             *      {data: "inv.balance",
-             *       header: "Balance Due $:",
-             *       styles: { numberFormat: "#,##0.00"}
-             *      }]
-             */
-            voucherData :{
-            	type: Array,
-            	value: function(){
-            		return []
-            	}
-            },
-            /**
-             * printOptions : {
-             * 	previewUrl
-             * 	debugPrint
-             * 	htmlDpi
-             * 	imageLoadTime
-             * 	paperHeight
-             * 	paperMarginBottom
-             * 	paperMarginLeft
-             * 	paperMarginRight
-             * 	paperMarginTop
-             * 	paperOrientation
-             * 	paperWidth
-             * 	previewHeight
-             * 	previewTitle
-             * 	previewUrl
-             * 	previewWidth
-             * }
-             * 
-             * previewUrl가 없을 경우 default로 web-root/previewer.html를 찾음
-             * @type {Object}
-             */
-            printOptions: {
-                type: Object,
-                value: function() {
-                    return {
-                    	previewUrl: 'previewer.html'
-                    };
-                }
-            },
-            /**
-             * 프리뷰만 할 것인지 아니면 프린트 까지 할 것인지
-             * true : print + preview
-             * false :  preview
-             * @type {Object}
-             */
-            isPrint:{
-            	type: Boolean,
-            	value : false
-            }
 
+		properties: {
+			/**
+			 * 전표 템플릿 아이디
+			 */
+			diyTemplateId: {
+				type: String
+			},
+
+			/**
+			* voucherConfig: {
+			*   grid: {
+			*   },
+			*
+			*   page: { 
+			*     // PrintPage Class at dataludi
+			*   	style: {   		
+			*   	}
+			*   },
+			*
+			*   pageFooter: { 
+			*     //모든 페이지 최 하단에 한 번씩 표시된다. 페이지 상단에는 페이지 헤더가 표시된다. 
+			*   	width : String --> number with unit in/cm/mm/px
+			*     height: String --> number with unit in/cm/mm/px
+			*     items: []/{}  --> data in page footer
+			*     maxHeight: String --> number with unit in/cm/mm/px
+			*     maxWidth: String --> number with unit in/cm/mm/px
+			*     minHeight: String --> number with unit in/cm/mm/px
+			*     minWidth: String --> number with unit in/cm/mm/px
+			*     styles: {
+			*     }
+			*   },
+			*
+			*   pageHeader: {
+			*   	// 모든 페이지 최 상단에 한 번씩 표시된다. 페이지 하단에는 페이지 Footer가 표시된다. 
+			*   	// page footer와 같음
+			*   },
+			*
+			*   pageTitle: {
+			*   	// 모든 페이지에서 데이터 영역 위쪽에 한 번씩 표시된다. 리포트 헤더가 표시되는 경우, 리포트 헤더 아래 표시된다. 
+			*   	// page footer와 같음 
+			*   },
+			*
+			*   printGrid: {
+			*   	// 거의 안씀 아래와 같은 속성 있음 어떻게 사용하는지 잘 모름
+			*   	card
+			*   	pageColumnLayout
+			*   	pageColumns
+			*   	pageFill
+			*   	pageLayout
+			*   },
+			*
+			*   report: {
+			*   	// 리포트 전체에 적용되는 기본 스타일 등을 포함하는 객체.리포트의 기본 폰트 등을 지정하고 싶은 경우, 
+			*			// 이 객체의 styles를 설정한다. 이 객체를 직접 생성할 일은 없다. 
+			*   },
+			*
+			*   reportFooter: {
+			*   	// 데이터가 표시되는 마지막 페이지 하단에 한 번 표시된다. 첫 페이지에는 리포트 Header가 표시된다. 
+			*   	// page footer와 같음
+			*   },
+			*   reportHeader: {
+			*   	// 데이터가 표시되는 첫 페이지 상단에 한 번 표시된다. 마지막 페이지에는 리포트 Footer가 표시된다. 
+			*   	// page footer와 같음
+			*   }
+			* }
+			* @type {Object}
+			*/
+			voucherConfig: {
+				type: Object
+			},
+
+			/**
+			 * ex : 
+			 * data ==> [{
+			 * 		id: "inv",
+			 * 		value: {
+			 * 			id: "00035",
+			 * 			date: "2016/04/24",
+			 * 			dueDate: "2016/05/31",
+			 * 			balance: 2311,
+			 * 			shipping: 12.95,
+			 * 			payments: -2000
+			 * 			}
+			 * 	}];
+			 *
+			 * //voucherConfig.items will be
+			 *
+			 * items: [ {
+			 * 	data: "inv.id",
+			 *  header: "Invoice No"
+			 * }, {
+			 *  data: "inv.date",
+			 *  header: "Date:"
+			 * }, {
+			 *  data: "inv.dueDate",
+			 *  header: "Due Date:"
+			 * }, {
+			 *  data: "inv.balance",
+			 *  header: "Balance Due $:",
+			 *  styles: { numberFormat: "#,##0.00" }
+			 * } ]
+			 */
+			/*voucherData: {
+				type: Array
+			},*/
+
+			/**
+			 * printOptions : {
+			 * 	previewUrl
+			 * 	debugPrint
+			 * 	htmlDpi
+			 * 	imageLoadTime
+			 * 	paperHeight
+			 * 	paperMarginBottom
+			 * 	paperMarginLeft
+			 * 	paperMarginRight
+			 * 	paperMarginTop
+			 * 	paperOrientation
+			 * 	paperWidth
+			 * 	previewHeight
+			 * 	previewTitle
+			 * 	previewUrl
+			 * 	previewWidth
+			 * }
+			 * 
+			 * previewUrl가 없을 경우 default로 web-root/previewer.html를 찾음
+			 * @type {Object}
+			 */
+			printOptions: {
+				type: Object,
+				value: function() {
+					return {
+						previewUrl: 'previewer.html'
+					};
+				}
+			},
+
+			/**
+			 * 프리뷰만 할 것인지 아니면 프린트 까지 할 것인지
+			 * true : print + preview
+			 * false :  preview
+			 * @type {Boolean}
+			 */
+			isPrint: {
+				type: Boolean,
+				value: false
+			}
 		},
 
 		listeners: {
-			'things-grid-configured': '_initializePrintBehavior',
-			'button-group.print-btn-tap' : 'printGrid'
+			'things-grid-configured': '_initializePrintBehavior'
 		},
 
 		_initializePrintBehavior:function(e){
@@ -157,22 +173,99 @@
 				var evt = this.fire('things-grid-print-configure', grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
 					// button tap 이벤트 추가 
-					this.listen(this.$['button-group'], 'print-btn-tap', 'printGrid');
+					this.listen(this.$['button-group'], 'print-btn-tap', 'printChit');
 					this.fire('things-grid-print-configured', grid);
 				}
 			}
 		},
 
-		printGrid:function(e){
+		/**
+     * 전표 인쇄
+     *
+     * @param {Object} e
+     */
+		printChit: function(e) {
 			var evt = this.fire('things-grid-handle-print', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
-				DLReport.preview(this.grid,
-								 this.voucherConfig, 
-								 this.voucherData, 
-								 this.printOptions, 
-								 this.isPrint);
-				this.fire('things-grid-print-finished', event.detail);
+				if(!this.diyTemplateId) return;
+
+				var rows = this.grid.getCheckedRows();
+				if(!rows || rows.length == 0) return;
+				
+				// 1. Get Selected Row Object
+				var row = this.dataSet.getRowObject(rows[0]._index);
+				
+				// 2. voucherConfig가 설정이 안 되어 있다면 CustomTemplate 호출하여 Template을 리턴 받아서 voucherConfig를 설정한다.
+				if(!this.voucherConfig) {
+					this.getChitTemplate(row);
+				
+				// 3. CustomTemplate을 호출하여 로직을 수행한 결과 데이터를 받는다.				
+				} else {
+					this.getTemplateData(row);
+				}
 			}
+		},
+
+		/**
+		 * 전표 템플릿 데이터를 조회
+		 *
+		 * @param {Object} selectedRow
+		 */
+		getChitTemplate: function(selectedRow) {
+			var ajax = document.createElement('things-ajax');
+			ajax.resourceUrl = 'diy_templates/' + this.diyTemplateId;
+			ajax.resourceAction = 'find';
+			var me = this;
+
+			ajax.addEventListener('things-ajax-response', function(event) {
+				me.voucherConfig = JSON.parse(event.detail.template);
+				me.getTemplateData(selectedRow);
+			});
+
+			ajax.generateRequest();
+		},
+
+		/**
+		 * 전표 템플릿에 매핑할 데이터를 DiyTemplate으로 부터 조회
+		 *
+		 * @param {Object} selectedRow
+		 */
+		getTemplateData: function(selectedRow) {
+			var ajax = document.createElement('things-ajax');
+			ajax.resourceUrl = 'diy_templates/' + this.diyTemplateId + '/query';
+			ajax.resourceAction = 'index';
+			ajax.queryFields = [{name : 'resource_id', value : selectedRow.id}];
+			var me = this;
+
+			ajax.addEventListener('things-ajax-response', function(event) {
+				me.doPrint(event.detail);
+			});
+
+			ajax.generateRequest();
+		},
+
+		/**
+		 * 전표 프린트
+		 */
+		doPrint: function(voucherData) {
+			var reportGrid =  DataLudi.createGridView('report-container', this.voucherConfig.gridColumns, true);
+			var reportGridDataSet = DataLudi.createGridDataSet(this.voucherConfig.gridModel);
+			reportGrid.setDataSource(reportGridDataSet);
+			reportGrid.setOptions({
+				footer: {visible : false},
+				display: {
+					selectStyle: DataLudi.SelectionStyle.ROWS,
+					rowHeight: 35,
+					heightMeasurer: 'fixed',
+					rowResizable: true
+				}
+			});
+
+			reportGridDataSet.setRows(voucherData.items);
+			var reportConfig = this.voucherConfig.reportConfig;
+			var reportData = voucherData.item;
+			DLReport.preview(reportGrid, reportConfig, reportData, this.printOptions, this.isPrint);
+			this.fire('things-grid-print-finished', event.detail);
 		}
 	}
 </script>
