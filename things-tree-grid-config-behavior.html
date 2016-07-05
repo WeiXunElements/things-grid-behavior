@@ -2,6 +2,7 @@
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../things-id/things-guid-behavior.html">
 <link rel="import" href="../things-msg-box-behavior/things-msg-box-behavior.html">
+<link rel="import" href="../things-resource-selector/things-resource-selector-behavior.html">
 
 <script src='dataludi.lic.min.js'></script>
 <script src='dataludi.min.js'></script>
@@ -11,13 +12,13 @@
   window.Things = window.Things || {};
 
   /**
-   * 트리 그리드 설정을 담당하는 Behavior. 
-   * 트리 그리드, 트리 그리드 모델, 트리 그리드 컬럼에 대한 설정을 통해 그리드를 설정하고 그리는 기능까지 담당한다.
+   * 그리드 설정을 담당하는 Behavior. 
+   * 그리드, 그리드 모델, 그리드 컬럼에 대한 설정을 통해 그리드를 설정하고 그리는 기능까지 담당한다.
    * Dataludi grid를 사용하고 중요한 설정사항은 크게 grid config, grid fields (model), grid columns 및 event 설정이 있다.
    *
-   * @polymerBehavior Things.TreeGridConfigBehavior
+   * @polymerBehavior Things.TreeConfigBehavior
    */
-  Things.TreeGridConfigBehaviorImpl = {
+  Things.TreeConfigBehaviorImpl = {
 
     properties: {
 
@@ -70,6 +71,7 @@
       
       /**
        * Grid data set
+       * Default Value : DataLudi.createGridDataSet()
        */
       dataSet: {
         type: Object,
@@ -79,11 +81,12 @@
       },
 
       /**
-       * Read data
+       * 그리드에 표시할 데이터 
        */
       data: {
-        type: Object
-      },      
+        type: Array,
+        'observer' : '_gridDataChanged'
+      }, 
 
       /**
        * Grid Height
@@ -131,10 +134,18 @@
           }, {
             expression: "(row % 2) > 0",
             styles: {
-              background: '#20006060'
+              background: '#0D333333'
             }
           } ];
         }
+      },
+
+      /**
+       * Grid Fixed Column Count
+       */
+      fixedColumnCount: {
+        type: Number,
+        value: 4
       },
 
       /**
@@ -181,6 +192,7 @@
         notify: true,
         readOnly: true
       }
+
       /**
        * 그리드 구성 전 발생하는 이벤트
        *
@@ -254,8 +266,7 @@
     },    
 
     observers: [
-      '_configurationsChanged(model, columns)',
-      '_gridDataChanged(data)'
+      '_configurationsChanged(model, columns)'
     ],
 
     /**
@@ -303,12 +314,14 @@
     },
 
     /**
-     * Initialize Grid
+     * 그리드 설정이 모두 완료되었다면 Dataludi Grid를 initialize한다.
      */
     initializeGrid: function() {
       if(!this._checkInitPossible()) return;
 
       try {
+        DataLudi.setRootContext('');
+        DataLudi.setAssetRoot(this.gridImageDir);
         this.grid = DataLudi.createTreeView(this.gridContainerId, null, false);
       } catch(e) {
         console.log(e);
@@ -316,17 +329,20 @@
       }
 
       try {
-        DataLudi.setRootContext('');
-        DataLudi.setAssetRoot(this.gridImageDir);
-        this.grid = DataLudi.createTreeView(this.gridContainerId, null, false);
+        if(Things.THINGS_XMES_THEME_STYLES) this.grid.loadStyles(Things.THINGS_XMES_THEME_STYLES);
+        if(Things.THINGS_XMES_THEME_OPTIONS) this.grid.setOptions(Things.THINGS_XMES_THEME_OPTIONS);
+
         this.grid.setDataSource(this.dataSet);
         this.grid.registerImageList({
           name: 'images',
           root: this.gridImageDir,
           items: this.gridImageItems
         });
+
         this.grid.body().setCellDynamicStyles(this.gridCellStyles);
-        this.grid.footer().setVisible(this.showGridFooter);      
+        this.grid.footer().setVisible(this.showGridFooter);
+        if(this.fixedColumnCount > 0)
+          this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
 
         this.grid._container_ = this;
 
@@ -342,8 +358,8 @@
           this._setGridColumns(this.columns);
         }
 
-        if(this.data) {
-          this.dataSet.setRows(this.data);
+        if(this.data&&this.data.length>0) {
+          this.dataSet.setRows(this.data,0);
         }
 
         if (this.grid && this.events) {
@@ -355,14 +371,14 @@
 
             this.fire('things-grid-event-configured', this.grid);
           }
-        }      
+        }
 
-        this.resizeGrid(this.parentNode, this.querySelector('div'));
-        this.fire('things-tree-grid-configured', this.grid);
+        this.resizeGrid();
+        this.fire('things-grid-configured', this.grid);
 
       } catch(e) {
         var evtDetail = { config: this.config, model: this.model, columns: this.columns, error: e };
-        this.fire('things-tree-grid-configure-failed', evtDetail);        
+        this.fire('things-grid-configure-failed', evtDetail);
       }
     },    
 
@@ -398,12 +414,23 @@
     },
 
     /**
+     * 버튼이 존재하는지 여부 체크
+     *
+     * @param {String} buttonId
+     */
+    isButtonExist: function(buttonId) {
+      if(!this.buttons || this.buttons.length == 0) return false;
+      var btns = this.buttons.filter(function(button) { return buttonId == button.id; });
+      return (!btns || btns.length == 0) ? false : true;
+    },
+
+    /**
      * 그리드 리사이즈
      */
     resizeGrid: function() {
-      var gridContainer = this.querySelector('div');
+      var gridContainer = this.$$('#' + this.gridContainerId);
 
-      if(this.grid && gridContainer.offsetHeight > 0) {
+      if(gridContainer && this.grid && gridContainer.offsetHeight > 0) {
         // 명시적으로 GridHeight를 설정했다면 설정한 값으로 ...
         if(this.gridHeight <= 0) {
           // TODO 아래 한 줄은 없어도 되야 하는데 없으면 그리드가 표시가 안 됨...
@@ -419,7 +446,6 @@
      *                            Grid Configuration
      **********************************************************************************
 
-
     /**
      * Configurations changed
      *
@@ -431,7 +457,7 @@
         var evtDetail = { config: this.config, model: model, columns: columns };
         var evt = this.fire('things-grid-configure', evtDetail, { cancelable: true });
         if(!evt.defaultPrevented) {
-            this.initializeGrid();
+          this.initializeGrid();
         }
       }
     },
@@ -444,7 +470,7 @@
     _setGridModel: function(gridModel) {
       if(!gridModel || !this.grid) return;
 
-      var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel;
+      var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel.slice();
 
       if (fields && fields.length > 0) {
         this.dataSet.setFields(fields);
@@ -460,11 +486,12 @@
     _setGridColumns: function(columns) {
       if(!columns || !this.grid) return;
 
-      var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns;
+      var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns.slice();
 
       if(this.enableDetailColumn) {
         gridColumns.unshift({
           name: 'Detail',
+          editable: false,
           width: 30,
           imageList: 'images',
           header: { text: ' ' },
@@ -530,6 +557,11 @@
               grid.setEditOptions(gridConfig[confKey]);
               break;
 
+            case 'effectOptions':
+              grid.setEffectOptions(gridConfig[confKey]);
+              break;
+
+
             case 'summaryMode':
               var SummaryMode = DataLudi.SummaryMode[gridConfig[confKey].toUpperCase()];
                 grid.setSummaryMode(SummaryMode);
@@ -551,6 +583,14 @@
               })
               break;
 
+            case 'groupBy':
+              grid.groupBy(gridConfig[confKey]);
+              break;         
+
+            case 'options':
+              grid.setOptions(gridConfig[confKey]);           
+              break;
+
             default: 
               break;
           }
@@ -561,17 +601,14 @@
     /**********************************************************************************
      *                            Grid Event
      **********************************************************************************
-    
 
     /**
      * 데이터 변경 이벤트 핸들러 
-     *
-     * @param {event} e
      */
-    _gridDataChanged: function(e) {
+    _gridDataChanged: function() {
       var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
-      if(!evt.defaultPrevented && this.data && this.dataSet) {
-        DataLudi.loadJsonData(this.dataSet, data, { rows: '', childRows: 'items' });
+      if(!evt.defaultPrevented && this.data &&this.data.length>0 && this.dataSet) {
+        this.dataSet.setRows(this.data,0);
         this.fire('things-grid-data-changed', this.data);
       }
     },    
@@ -587,6 +624,8 @@
         if(this.grid == null) {
           this.initializeGrid();
         }
+
+        //if(this.grid != null) this.resizeGrid();
       }
     },
 
@@ -633,21 +672,57 @@
     _gridCellDblClicked: function(grid, index) {
       var me = grid._container_;
       var column = index.column;
+      grid.commit();
 
-      if(column._header && column._header._text == '...' && 
-         column._renderer && column._renderer.type && column._renderer.type == 'icon') {
-        var matchColumn = me.columns.filter(function(col) { return (column._name == col.name); });
-        me.fire('things-grid-resource-column-edit', { 
-          userObj : matchColumn ? matchColumn[0].userObj : null, 
-          index: index 
-        });
+      if(column._header && column._header._text == '...' && column._renderer && column._renderer.type && column._renderer.type == 'icon') {
+        var matchColumn = me.columns.filter(function(col) { return (column.name() == col.name); });
+        var eventDetail = { userObj : matchColumn ? matchColumn[0].userObj : null, index: index  };
+        var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
+        if(!evt.defaultPrevented) {
+          me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
+        }
+
+      } else if (column.styles().iconIndex() == 'date-picker') {
+        var evt = me.fire('things-grid-date-column-edit', eventDetail, { cancelable: true });
+        if(!evt.defaultPrevented) {
+          var dataSet = grid.dataSource();
+          var row = grid.focusedRow();
+          var rowObj = row.getRowObject();
+          var dataObj = {
+            owner: me,
+            ownerGrid: grid,
+            ownerGridObj: rowObj,
+            ownerGridIdx: index.rowIndex,
+            ownerGridColumn: column.name(),
+            date: rowObj[column.name()]
+          };
+          app.$['date-picker-dialog'].dialogToggle(dataObj, me._applySelectedDate);
+        }
+
+      } else {
+        me.fire('things-grid-column-dblclicked', { grid : grid, index : index });
       }
-    }    
+    },
+
+    /**
+     * date picker dilog 내부에서 실행되는 callback 함수
+     */
+    _applySelectedDate: function(dataObj) {
+      var grid = dataObj.ownerGrid;
+      var rowObj = dataObj.ownerGridObj;
+      var rowIdx = dataObj.ownerGridIdx;
+      var dataSet = grid.dataSource();
+
+      rowObj[dataObj.ownerGridColumn] = dataObj.date;
+      dataSet.updateRow(rowIdx, rowObj);
+      grid.refreshView();
+    }        
   };
 
   Things.TreeGridConfigBehavior = [
-    Things.TreeGridConfigBehaviorImpl,
+    Things.TreeConfigBehaviorImpl,
     Polymer.IronResizableBehavior,
+    Things.ResourceSelectorBehavior,
     Things.GUIDBehavior,
     Things.MsgBoxBehavior
   ];
