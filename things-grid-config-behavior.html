@@ -738,6 +738,25 @@
                     app.$['date-picker-dialog'].dialogToggle(dataObj, me._applySelectedDate);
                 }
 
+            } else if (column.styles().iconIndex() == 'image-selector') {
+                var evt = me.fire('things-grid-image-selector-edit', eventDetail, {
+                    cancelable: true
+                });
+
+                if(!evt.defaultPrevented) {
+                    var dataSet = grid.dataSource();
+                    var row = grid.focusedRow();
+                    var rowObj = row.getRowObject();
+                    var dataObj = {
+                        owner: me,
+                        ownerGrid: grid,
+                        ownerGridObj: rowObj,
+                        ownerGridIdx: index.rowIndex,
+                        ownerGridColumn: column.name(),
+                        date: rowObj[column.name()]
+                    };
+                    app.$['image-selector-dialog'].toggleImageSelector(dataObj, me._applySelectedImage);
+                }
             } else {
                 me.fire('things-grid-column-dblclicked', {
                     grid: grid,
@@ -756,6 +775,17 @@
             var dataSet = grid.dataSource();
 
             rowObj[dataObj.ownerGridColumn] = dataObj.date;
+            dataSet.updateRow(rowIdx, rowObj);
+            grid.refreshView();
+        },
+
+        _applySelectedImage: function(dataObj) {
+            var grid = dataObj.ownerGrid;
+            var rowObj = dataObj.ownerGridObj;
+            var rowIdx = dataObj.ownerGridIdx;
+            var dataSet = grid.dataSource();
+
+            rowObj[dataObj.ownerGridColumn] = dataObj.value;
             dataSet.updateRow(rowIdx, rowObj);
             grid.refreshView();
         }
