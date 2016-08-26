@@ -1,0 +1,71 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script>
+
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 행을 추가하는 기능을 제공하는 그리드 Behavior 
+	 *
+	 * @polymerBehavior Things.GridAddrowBehavior
+	 */
+	Things.GridRequestReleaseBehavior = {
+
+		properties: {
+			/**
+			* 그리드 Add Row Behavior 구성 전 발생하는 이벤트
+			*
+			* @event things-grid-addrow-configure
+			*/
+			/**
+			* 그리드 Add Row Behavior 구성이 완료된 후 발생하는 이벤트
+			*
+			* @event things-grid-addrow-configured
+			*/
+			/**
+			* 그리드 행 추가 전 발생하는 이벤트. 
+			* 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+			*
+			* @event things-grid-handle-addrow
+			*/
+		},
+
+		listeners: {
+			'things-grid-configured' : '_initializeRequestReleaseBehavior',
+		},
+
+		/**
+		 * 그리드 구성이 완료된 후 GridAddRowBehavior를 initialize 한다.
+		 *
+		 * @param {Object} e things-grid-configured 이벤트
+		 */
+		_initializeRequestReleaseBehavior: function(e) {
+			var grid = e.detail;
+
+			if(grid && this.isButtonExist('request-release-btn')) {
+				var evt = this.fire('things-grid-request-release-configure', grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'request-release-btn-tap', 'requestRelease');
+					this.fire('things-grid-request-release-configured', grid);
+				}
+			}
+		},
+
+		/**
+		 * Add Grid Row
+		 *
+		 * @param {Object} e button-tap 이벤트
+		 */
+		requestRelease: function(e) {
+			// this.grid.commit();
+			
+			var evt = this.fire('things-grid-handle-request-release', e.detail, { cancelable: true });
+			// if(!evt.defaultPrevented) {
+			// 	console.log('request-release');
+			// }
+		}
+		
+	};
+
+</script>
