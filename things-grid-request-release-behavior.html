@@ -58,8 +58,21 @@
 		 * @param {Object} e button-tap 이벤트
 		 */
 		requestRelease: function(e) {
-			// this.grid.commit();
-			
+			e.detail.row=null;
+			e.detail.rows=[];
+
+			var gridRows = this.grid.getCheckedRows();
+			if(gridRows && gridRows.length>0){
+				if(gridRows.length>1){
+		            for (var i = gridRows.length; i--;) {
+		                var rowIndex = gridRows[i].dataIndex();
+		                e.detail.rows.push(this.dataSet.getRowObject(rowIndex))
+		            }
+				}else{
+					var row = this.dataSet.getRowObject(gridRows[0].dataIndex());
+					e.detail.row = row;
+				}
+			}
 			var evt = this.fire('things-grid-handle-request-release', e.detail, { cancelable: true });
 			// if(!evt.defaultPrevented) {
 			// 	console.log('request-release');
