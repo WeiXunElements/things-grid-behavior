@@ -53,7 +53,7 @@
 		},
 
 		/**
-		 * Add Grid Row
+		 * request release button tap
 		 *
 		 * @param {Object} e button-tap 이벤트
 		 */
@@ -72,6 +72,8 @@
 					var row = this.dataSet.getRowObject(gridRows[0].dataIndex());
 					e.detail.row = row;
 				}
+			}else{
+				this.fire('things-grid-not-check-data', e.detail, { cancelable: true });
 			}
 			var evt = this.fire('things-grid-handle-request-release', e.detail, { cancelable: true });
 			// if(!evt.defaultPrevented) {
