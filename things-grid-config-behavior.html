@@ -753,9 +753,10 @@
                         ownerGridObj: rowObj,
                         ownerGridIdx: index.rowIndex,
                         ownerGridColumn: column.name(),
-                        date: rowObj[column.name()]
+                        date: rowObj[column.name()],
+                        displayField: 'id'
                     };
-                    app.$['image-selector-dialog'].toggleImageSelector(dataObj, me._applySelectedImage);
+                    app.$['image-selector-dialog'].dialogToggle(dataObj, me._applySelectedImage);
                 }
             } else {
                 me.fire('things-grid-column-dblclicked', {
