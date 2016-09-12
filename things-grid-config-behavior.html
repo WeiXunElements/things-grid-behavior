@@ -753,10 +753,23 @@
                         ownerGridObj: rowObj,
                         ownerGridIdx: index.rowIndex,
                         ownerGridColumn: column.name(),
-                        date: rowObj[column.name()],
                         displayField: 'id'
                     };
                     app.$['image-selector-dialog'].dialogToggle(dataObj, me._applySelectedImage);
+                }
+            } else if (column.styles().iconIndex() == 'resource-format-selector') {
+                var matchColumn = me.columns.filter(function(col) {
+                    return (column.name() == col.name);
+                });
+                var eventDetail = {
+                    userObj: matchColumn ? matchColumn[0].userObj : null,
+                    index: index
+                };
+                var evt = me.fire('things-grid-resource-format-column-edit', eventDetail, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
+                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
                 }
             } else {
                 me.fire('things-grid-column-dblclicked', {
