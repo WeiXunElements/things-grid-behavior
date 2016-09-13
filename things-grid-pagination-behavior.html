@@ -31,7 +31,7 @@
 			showPaginator: {
 				type: Boolean,
 				value: false
-			},			
+			},
 			
 			/**
 			 * Infinite Scroll 지원 여부 
@@ -44,11 +44,11 @@
 			/**
 			 * Page Limit
 			 */
-			perPage: {
+			limit: {
 				type: Number,
 				value: 50,
 				notify: true,
-				observer: '_perPageChanged'
+				observer: '_limitChanged'
 			},
 			
 			/**
@@ -110,7 +110,7 @@
 			// Add Paginator Element
 			var paginator = document.createElement('things-paginator');
 			paginator.id = 'paginator';
-			paginator.perPage = this.perPage;
+			paginator.limit = this.limit;
 			paginator.currentPage = this.currentPage;
 			paginator.totalCount = this.totalCount;
 			paginator.pageStartIdx = this.pageStartIdx;
@@ -141,13 +141,13 @@
 		},
 
 		/**
-		 * perPage 변경시 핸들러
+		 * limit 변경시 핸들러
 		 *
 		 * @param {Number} newValue
 		 */
-		_perPageChanged: function(newValue) {
+		_limitChanged: function(newValue) {
 			if(this.$.paginator) {
-				this.$.paginator.perPage = newValue;
+				this.$.paginator.limit = newValue;
 			}
 		},
 
@@ -221,8 +221,6 @@
 				this.dataSet.clearRowStates();
 				this.fire('things-grid-data-changed', this.data);
 			}
-		}		
-		
+		}
 	};
-
 </script>
