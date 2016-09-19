@@ -377,6 +377,25 @@
                     }
                 }
 
+                // 그리드 Configuration
+                // 1. Undo & redo 
+                this.dataSet.setUndoable(true);
+                this.grid.setUndoable(true);
+
+                // 2. Auto Fill
+                this.grid.setAutoFill(true);
+
+                // 3. Check Draggable
+                this.grid.checkBar().setDraggable(true);
+
+                // 4. Row Hover Mask & Mask Color
+                this.grid.displayOptions().rowHoverMask().setVisible(true);
+                this.grid.loadStyles({ body: { rowHover: { background: "#2000ff88" } }});
+
+                // 5. Empty Data, Empty Grid message.
+                this.grid.displayOptions().setEmptyDataMessage(Things.DataGlobal.t('text.emptyDataMessage'));
+                this.grid.displayOptions().setEmptyGridMessage(Things.DataGlobal.t('text.emptyGridMessage'));
+
                 this.resizeGrid();
                 this.fire('things-grid-configured', this.grid);
 
