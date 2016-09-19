@@ -396,6 +396,11 @@
                 this.grid.displayOptions().setEmptyDataMessage(Things.DataGlobal.t('text.emptyDataMessage'));
                 this.grid.displayOptions().setEmptyGridMessage(Things.DataGlobal.t('text.emptyGridMessage'));
 
+                // 6. fixed columns
+                this.grid.displayOptions().setFixedColumnMovable(true);
+                this.grid.displayOptions().setFixedColumnResizable(true);
+                this.grid.loadStyles({ body: { fixedCell: { background: '', borderRight: '', borderBottom: ''}}});
+
                 this.resizeGrid();
                 this.fire('things-grid-configured', this.grid);
 
