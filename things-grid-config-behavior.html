@@ -272,7 +272,7 @@
         ],
 
         /**
-         * Life Cycle - Created
+         * Life Cycle - Ready
          */
         ready: function() {
             this.gridContainerId = 'a' + this.generateGuid();
@@ -343,8 +343,9 @@
 
                 this.grid.body().setCellDynamicStyles(this.gridCellStyles);
                 this.grid.footer().setVisible(this.showGridFooter);
-                if (this.fixedColumnCount > 0)
+                if (this.fixedColumnCount > 0) {
                     this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
+                }
 
                 this.grid._container_ = this;
 
@@ -365,9 +366,7 @@
                 }
 
                 if (this.grid && this.events) {
-                    var evt = this.fire('things-grid-event-configure', this.grid, {
-                        cancelable: true
-                    });
+                    var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
                     if (!evt.defaultPrevented) {
                         for (var eventName in this.events) {
                             this.grid[eventName] = this[this.events[eventName]];
@@ -494,9 +493,7 @@
                     model: model,
                     columns: columns
                 };
-                var evt = this.fire('things-grid-configure', evtDetail, {
-                    cancelable: true
-                });
+                var evt = this.fire('things-grid-configure', evtDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
                     this.initializeGrid();
                 }
@@ -512,7 +509,6 @@
             if (!gridModel || !this.grid) return;
 
             var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel.slice();
-
             if (fields && fields.length > 0) {
                 this.dataSet.setFields(fields);
                 this.dataSet.setCheckStates(true);
@@ -535,7 +531,7 @@
                 }
             })
 
-            var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns.slice();
+            var gridColumns = (typeof(columns) === 'string') ? JSONfn.parse(columns) : columns.slice();
 
             if (this.enableDetailColumn) {
                 gridColumns.unshift({
@@ -572,9 +568,7 @@
             var gridConfig = (typeof(config) === 'string') ? JSON.parse(config) : config;
 
             if (!gridConfig) {
-                this.grid.setEditOptions({
-                    readOnly: true
-                });
+                this.grid.setEditOptions({ readOnly: true });
 
             } else {
                 var grid = this.grid;
@@ -616,7 +610,6 @@
                             grid.setEffectOptions(gridConfig[confKey]);
                             break;
 
-
                         case 'summaryMode':
                             var SummaryMode = DataLudi.SummaryMode[gridConfig[confKey].toUpperCase()];
                             grid.setSummaryMode(SummaryMode);
@@ -645,9 +638,6 @@
                         case 'options':
                             grid.setOptions(gridConfig[confKey]);
                             break;
-
-                        default:
-                            break;
                     }
                 });
             }
@@ -661,9 +651,7 @@
          * 데이터 변경 이벤트 핸들러
          */
         _gridDataChanged: function() {
-            var evt = this.fire('things-grid-data-change', this.data, {
-                cancelable: true
-            });
+            var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
             if (!evt.defaultPrevented && this.data && this.dataSet) {
                 this.dataSet.setRows(this.data);
                 this.fire('things-grid-data-changed', this.data);
@@ -676,15 +664,11 @@
          * @param {Object} iron-resize 이벤트
          */
         _gridResizeHandler: function(e) {
-            var evt = this.fire('things-grid-resize', this.grid, {
-                cancelable: true
-            });
+            var evt = this.fire('things-grid-resize', this.grid, { cancelable: true });
             if (!evt.defaultPrevented) {
                 if (this.grid == null) {
                     this.initializeGrid();
                 }
-
-                //if(this.grid != null) this.resizeGrid();
             }
         },
 
@@ -696,7 +680,6 @@
          */
         _gridCellClicked: function(grid, cellData) {
             if (!grid._container_ || !cellData) return;
-
             var thingsGrid = grid._container_;
 
             if (cellData.dataColumn() && cellData.getDataIndex(grid) >= 0) {
@@ -736,7 +719,7 @@
             var column = index.column;
             grid.commit();
 
-            if (column._header && column._header._text == '...' && column._renderer && column._renderer.type && column._renderer.type == 'icon') {
+            /*if (column._header && column._header._text == '...' && column._renderer && column._renderer.type && column._renderer.type == 'icon') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
                 });
@@ -744,17 +727,26 @@
                     userObj: matchColumn ? matchColumn[0].userObj : null,
                     index: index
                 };
-                var evt = me.fire('things-grid-resource-column-edit', eventDetail, {
-                    cancelable: true
+                var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
+                if (!evt.defaultPrevented) {
+                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
+                }
+
+            } else*/ if (column.styles().iconIndex() == 'resource-selector') {
+                var matchColumn = me.columns.filter(function(col) {
+                    return (column.name() == col.name);
                 });
+                var eventDetail = {
+                    userObj: matchColumn ? matchColumn[0].userObj : null,
+                    index: index
+                };
+                var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
                     me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
                 }
 
             } else if (column.styles().iconIndex() == 'date-picker') {
-                var evt = me.fire('things-grid-date-column-edit', eventDetail, {
-                    cancelable: true
-                });
+                var evt = me.fire('things-grid-date-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
                     var dataSet = grid.dataSource();
                     var row = grid.focusedRow();
@@ -771,10 +763,7 @@
                 }
 
             } else if (column.styles().iconIndex() == 'image-selector') {
-                var evt = me.fire('things-grid-image-selector-edit', eventDetail, {
-                    cancelable: true
-                });
-
+                var evt = me.fire('things-grid-image-selector-edit', eventDetail, { cancelable: true });
                 if(!evt.defaultPrevented) {
                     var dataSet = grid.dataSource();
                     var row = grid.focusedRow();
@@ -789,6 +778,7 @@
                     };
                     app.$['image-selector-dialog'].dialogToggle(dataObj, me._applySelectedImage);
                 }
+
             } else if (column.styles().iconIndex() == 'resource-format-selector') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
@@ -797,22 +787,18 @@
                     userObj: matchColumn ? matchColumn[0].userObj : null,
                     index: index
                 };
-                var evt = me.fire('things-grid-resource-format-column-edit', eventDetail, {
-                    cancelable: true
-                });
+                var evt = me.fire('things-grid-resource-format-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
                     me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
                 }
+
             } else {
-                me.fire('things-grid-column-dblclicked', {
-                    grid: grid,
-                    index: index
-                });
+                me.fire('things-grid-column-dblclicked', { grid: grid, index: index });
             }
         },
 
         /**
-         * date picker dilog 내부에서 실행되는 callback 함수
+         * date picker dialog 내부에서 실행되는 callback 함수
          */
         _applySelectedDate: function(dataObj) {
             var grid = dataObj.ownerGrid;

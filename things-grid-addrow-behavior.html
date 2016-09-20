@@ -67,11 +67,20 @@
 			
 			var evt = this.fire('things-grid-handle-addrow', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
-				// TODO model 정보로 부터 모델을 만들어서 insert
-				this.dataSet.insertRow(0, {});
+				this.dataSet.insertRow(0, this.newRowData());
 			}
+		},
+
+		/**
+		 * Create Empty Row Data
+		 */
+		newRowData: function() {
+			var newData = {};
+			this.model.forEach(function(fieldModel) { 
+				newData[fieldModel.fieldName] = fieldModel.defaultValue ? fieldModel.defaultValue : null; 
+			});
+			return newData;
 		}
-		
 	};
 
 </script>
