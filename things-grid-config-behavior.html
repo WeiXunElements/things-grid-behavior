@@ -525,7 +525,15 @@
          * @param {Array} / {String} columns
          */
         _setGridColumns: function(columns) {
-            if (!columns || !this.grid) return;
+            if(!columns || !this.grid) return;
+
+            // list type의 그리드 컬럼에 라벨 벨류를 함께 표시하도록 설정
+            columns.forEach(function(column) {
+                if(column.editor && column.editor.type == 'list') {
+                    column.editor.listItemDisplay = 'labelValue';
+                    column.editor.listItemColumned = true;
+                }
+            })
 
             var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns.slice();
 
