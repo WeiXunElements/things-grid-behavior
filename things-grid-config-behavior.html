@@ -3,8 +3,10 @@
 <link rel="import" href="../things-id/things-guid-behavior.html">
 <link rel="import" href="../things-msg-box-behavior/things-msg-box-behavior.html">
 <link rel="import" href="../things-resource-selector/things-resource-selector-behavior.html">
+
 <script src='dataludi-13553.min.js_'></script>
 <script src='dataludi-report.min.js'></script>
+
 <script>
     window.Things = window.Things || {};
 
@@ -18,7 +20,6 @@
     Things.GridConfigBehaviorImpl = {
 
         properties: {
-
             /**
              * Grid container id
              * Grid container id가 중복이 되면 grid가 다른 grid container에 생성될 수 있으므로 GUID로 한다.
@@ -389,16 +390,22 @@
 
                 // 4. Row Hover Mask & Mask Color
                 this.grid.displayOptions().rowHoverMask().setVisible(true);
-                this.grid.loadStyles({ body: { rowHover: { background: "#2000ff88" } }});
 
                 // 5. Empty Data, Empty Grid message.
                 this.grid.displayOptions().setEmptyDataMessage(Things.DataGlobal.t('text.emptyDataMessage'));
                 this.grid.displayOptions().setEmptyGridMessage(Things.DataGlobal.t('text.emptyGridMessage'));
 
-                // 6. fixed columns
+                // 6. Fixed columns
                 this.grid.displayOptions().setFixedColumnMovable(true);
                 this.grid.displayOptions().setFixedColumnResizable(true);
-                this.grid.loadStyles({ body: { fixedCell: { background: '', borderRight: '', borderBottom: ''}}});
+
+                // 7. Styles
+                this.grid.loadStyles({ 
+                  body: { 
+                    rowHover: { background: "#2000ff88" },
+                    fixedCell: { background: '', borderRight: '', borderBottom: ''}
+                  }
+                });                
 
                 this.resizeGrid();
                 this.fire('things-grid-configured', this.grid);
@@ -724,12 +731,12 @@
                     return (column.name() == col.name);
                 });
                 var eventDetail = {
-                    userObj: matchColumn ? matchColumn[0].userObj : null,
+                    userData: matchColumn ? matchColumn[0].userData : null,
                     index: index
                 };
                 var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
-                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
+                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
                 }
 
             } else*/ if (column.styles().iconIndex() == 'resource-selector') {
@@ -737,12 +744,12 @@
                     return (column.name() == col.name);
                 });
                 var eventDetail = {
-                    userObj: matchColumn ? matchColumn[0].userObj : null,
+                    userData: matchColumn ? matchColumn[0].userData : null,
                     index: index
                 };
                 var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
-                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
+                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
                 }
 
             } else if (column.styles().iconIndex() == 'date-picker') {
@@ -784,12 +791,12 @@
                     return (column.name() == col.name);
                 });
                 var eventDetail = {
-                    userObj: matchColumn ? matchColumn[0].userObj : null,
+                    userData: matchColumn ? matchColumn[0].userData : null,
                     index: index
                 };
                 var evt = me.fire('things-grid-resource-format-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
-                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
+                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
                 }
 
             } else {

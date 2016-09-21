@@ -703,14 +703,14 @@
                     return (column.name() == col.name);
                 });
                 var eventDetail = {
-                    userObj: matchColumn ? matchColumn[0].userObj : null,
+                    userData: matchColumn ? matchColumn[0].userData : null,
                     index: index
                 };
                 var evt = me.fire('things-grid-resource-column-edit', eventDetail, {
                     cancelable: true
                 });
                 if (!evt.defaultPrevented) {
-                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userObj, true);
+                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
                 }
 
             } else if (column.styles().iconIndex() == 'date-picker') {
