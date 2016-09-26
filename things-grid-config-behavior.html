@@ -770,7 +770,7 @@
                         ownerGridColumn: column.name(),
                         date: rowObj[column.name()]
                     };
-                    app.$['date-picker-dialog'].dialogToggle(dataObj, me._applySelectedDate);
+                    app.$['dialog-manager'].openDateDialog(dataObj, me._applySelectedDate);
                 }
 
             } else if (column.styles().iconIndex() == 'image-selector') {
@@ -787,7 +787,7 @@
                         ownerGridColumn: column.name(),
                         displayField: 'id'
                     };
-                    app.$['image-selector-dialog'].dialogToggle(dataObj, me._applySelectedImage);
+                    app.$['dialog-manager'].openImageSelectorDialog(dataObj, me._applySelectedImage);
                 }
 
             } else if (column.styles().iconIndex() == 'resource-format-selector') {
