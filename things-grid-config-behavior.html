@@ -770,7 +770,11 @@
                         ownerGridColumn: column.name(),
                         date: rowObj[column.name()]
                     };
-                    app.$['dialog-manager'].openDateDialog(dataObj, me._applySelectedDate);
+
+                    var event = {};
+                    event.dataObj = dataObj;
+                    event.callback = me._applySelectedDate;
+                    me.fire('things-date-picker-toggle', event);
                 }
 
             } else if (column.styles().iconIndex() == 'image-selector') {
@@ -787,7 +791,12 @@
                         ownerGridColumn: column.name(),
                         displayField: 'id'
                     };
-                    app.$['dialog-manager'].openImageSelectorDialog(dataObj, me._applySelectedImage);
+
+                    var event = {};
+                    event.dataObj = dataObj;
+                    event.callback = me._applySelectedDate;
+
+                    me.fire('things-image-selector-toggle', event);
                 }
 
             } else if (column.styles().iconIndex() == 'resource-format-selector') {
