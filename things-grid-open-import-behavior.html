@@ -61,7 +61,14 @@
 			var evt = this.fire('things-grid-handle-open-import', e.detail, { cancelable: true });
 			if(!evt.defaultPrevented) {
 				var resourceUrl = this.gridSaveAction ? this.gridSaveAction.substr(0, this.gridSaveAction.lastIndexOf('/')) : '';
-				app.$['dialog-manager'].openImportDialog(this.config, this.model, this.columns, { title : '', resource_url : resourceUrl });
+
+				var event = {};
+				event.config = this.config;
+				event.model = this.model;
+				event.columns = this.columns;
+				event.menuInfo = { title : '', resource_url : resourceUrl };
+
+				this.fire('things-import-dialog-toggle', event);
 			}
 		}
 
