@@ -1,5 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
-
+<link rel="import" href="../../bower_components/iron-signals/iron-signals.html">
 <script>
 	window.Things = window.Things || {};
 
@@ -142,7 +142,7 @@
 				type: Object,
 				value: function() {
 					return {
-						previewUrl: 'previewer.html'
+						// previewUrl: 'previewer.html'
 					};
 				}
 			},
@@ -252,10 +252,12 @@
 		 * 전표 프린트
 		 */
 		doPrint: function(voucherData) {
-			var reportGrid = DataLudi.createGridView('report-container', this.voucherConfig.gridColumns, true);
-			var reportGridDataSet = DataLudi.createGridDataSet(this.voucherConfig.gridModel);
-			reportGrid.setDataSource(reportGridDataSet);
-			reportGrid.setOptions({
+			var detail ={};
+
+			detail.reportGrid = DataLudi.createGridView('report-container', this.voucherConfig.gridColumns, true);
+			detail.reportGridDataSet = DataLudi.createGridDataSet(this.voucherConfig.gridModel);
+			detail.reportGrid.setDataSource(detail.reportGridDataSet);
+			detail.reportGrid.setOptions({
 				footer: {
 					visible: false
 				},
@@ -267,10 +269,13 @@
 				}
 			});
 
-			reportGridDataSet.setRows(voucherData.items);
-			var reportConfig = this.voucherConfig.reportConfig;
-			var reportData = voucherData.item;
-			DLReport.preview(reportGrid, reportConfig, reportData, this.printOptions, this.isPrint);
+			detail.reportGridDataSet.setRows(voucherData.items);
+			detail.reportModel = this.voucherConfig.reportConfig;
+			detail.reportData = voucherData.item;
+			detail.reportOptions = this.printOptions;
+
+			DLReport.preview(detail.reportGrid, detail.reportModel, detail.reportData, this.printOptions, this.isPrint);
+			// this.fire('iron-signal', {name: 'things-create-voucher-preview', data: detail});
 			this.fire('things-grid-print-finished', event.detail);
 		}
 	}
