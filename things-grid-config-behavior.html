@@ -99,6 +99,14 @@
             },
 
             /**
+             * Grid Row Height
+             */
+            rowHeight: {
+                type: Number,
+                value: 30
+            },
+
+            /**
              * 그리드 이미지 루트
              */
             gridImageDir: {
@@ -412,14 +420,29 @@
                 this.grid.displayOptions().setEmptyDataMessage(Things.DataGlobal.t('text.emptyDataMessage'));
                 this.grid.displayOptions().setEmptyGridMessage(Things.DataGlobal.t('text.emptyGridMessage'));
 
-                // 6. Fixed columns
+                // 6. Row Height && Fixed columns
                 this.grid.displayOptions().setFixedColumnMovable(true);
                 this.grid.displayOptions().setFixedColumnResizable(true);
+
+                var imageRendererExist = false;
+                this.columns.forEach(function(column) {
+                    if(!imageRendererExist && column.styles && column.styles.iconIndex == 'image-renderer') {
+                        imageRendererExist = true;
+                    }
+                });
+
+                // ImageRenderer가 있다면 Row Height를 60으로 확장 
+                if(imageRendererExist) {
+                    if(this.rowHeight <= 50) this.rowHeight = 60;
+                }
+
+                this.grid.displayOptions().setRowHeight(this.rowHeight);
+
 
                 // 7. Styles
                 this.grid.loadStyles({ 
                   body: { 
-                    rowHover: { background: "#2000ff88" },
+                    rowHover: { background: '#2000ff88' },
                     fixedCell: { background: '', borderRight: '', borderBottom: ''}
                   }
                 });                
@@ -428,13 +451,12 @@
                 this.fire('things-grid-configured', this.grid);
 
             } catch (e) {
-                var evtDetail = {
+                this.fire('things-grid-configure-failed', {
                     config: this.config,
                     model: this.model,
                     columns: this.columns,
                     error: e
-                };
-                this.fire('things-grid-configure-failed', evtDetail);
+                });
             }
         },
 
@@ -547,13 +569,24 @@
         _setGridColumns: function(columns) {
             if(!columns || !this.grid) return;
 
+            var imageRendererExist = false;
+
             // list type의 그리드 컬럼에 라벨 벨류를 함께 표시하도록 설정
             columns.forEach(function(column) {
                 if(column.editor && column.editor.type == 'list') {
                     column.editor.listItemDisplay = 'labelValue';
                     column.editor.listItemColumned = true;
                 }
-            })
+
+                if(!imageRendererExist && column.editor == 'image-renderer') {
+                    imageRendererExist = true;
+                }
+            });
+
+            // ImageRenderer가 있다면 Row Height를 60으로 확장 
+            if(imageRendererExist) {
+                if(this.rowHeight <= 50) this.rowHeight = 80;
+            }
 
             var gridColumns = (typeof(columns) === 'string') ? JSONfn.parse(columns) : columns.slice();
 
@@ -743,6 +776,8 @@
             var column = index.column;
             grid.commit();
 
+            var iconStyle = column.styles().iconIndex();
+
             /*if (column._header && column._header._text == '...' && column._renderer && column._renderer.type && column._renderer.type == 'icon') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
@@ -756,7 +791,7 @@
                     me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
                 }
 
-            } else*/ if (column.styles().iconIndex() == 'resource-selector') {
+            } else*/ if (iconStyle == 'resource-selector') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
                 });
@@ -769,7 +804,7 @@
                     me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
                 }
 
-            } else if (column.styles().iconIndex() == 'date-picker') {
+            } else if (iconStyle == 'date-picker') {
                 var evt = me.fire('things-grid-date-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
                     var dataSet = grid.dataSource();
@@ -790,7 +825,7 @@
                     me.fire('things-date-picker-toggle', event);
                 }
 
-            } else if (column.styles().iconIndex() == 'image-selector') {
+            } else if (iconStyle == 'image-selector' || iconStyle == 'image-renderer') {
                 var evt = me.fire('things-grid-image-selector-edit', eventDetail, { cancelable: true });
                 if(!evt.defaultPrevented) {
                     var dataSet = grid.dataSource();
@@ -808,11 +843,10 @@
                     var event = {};
                     event.dataObj = dataObj;
                     event.callback = me._applySelectedImage;
-
                     me.fire('things-image-selector-toggle', event);
                 }
 
-            } else if (column.styles().iconIndex() == 'resource-format-selector') {
+            } else if (iconStyle == 'resource-format-selector') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
                 });
