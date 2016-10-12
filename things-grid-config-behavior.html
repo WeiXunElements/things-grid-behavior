@@ -739,9 +739,9 @@
             if (!grid._container_ || !cellData) return;
             var thingsGrid = grid._container_;
 
-            if (cellData.dataColumn() && cellData.getDataIndex(grid) >= 0) {
+            if (cellData.dataColumn() || cellData.valueColumn() && cellData.getDataIndex(grid) >= 0) {
                 var rowIndex = cellData.getDataIndex(grid);
-                var colIndex = cellData.dataField();
+                var colIndex = grid.focusedColumn().index();
                 var row = grid.focusedRow();
 
                 if (row && row.dataIndex() >= 0) {
@@ -749,12 +749,20 @@
                     thingsGrid.fire('things-grid-row-data-select', thingsGrid.selectedRowData);
                 }
 
-                if (thingsGrid.dataSet && cellData.dataField() >= 0) {
+                if (thingsGrid.dataSet && colIndex >= 0) {
                     thingsGrid._setSelectedCellData(thingsGrid.dataSet.getValue(rowIndex, colIndex));
-                    thingsGrid.fire('things-grid-cell-data-select', {
-                        row: thingsGrid.selectedRowData,
-                        cell: cellData
-                    });
+
+                    if(cellData.column._renderer &&cellData.column._renderer.type == 'image') {
+                        thingsGrid.fire('things-grid-cell-image-select', {
+                            row: thingsGrid.selectedRowData,
+                            cell: cellData
+                        });
+                    } else {
+                        thingsGrid.fire('things-grid-cell-data-select', {
+                            row: thingsGrid.selectedRowData,
+                            cell: cellData
+                        });
+                    }
                 }
 
                 if (thingsGrid.enableDetailColumn && cellData.column._name == 'Detail' &&
