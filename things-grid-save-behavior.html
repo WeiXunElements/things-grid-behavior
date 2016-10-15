@@ -105,23 +105,51 @@
 		saveGridData: function(e) {
 			this.grid.commit();
 
-			// 1. 업데이트할 데이터를 셋업한다.
-			var evt = this.fire('things-grid-handle-build-writedata', this.grid, { cancelable: true });
-			if(!evt.defaultPrevented) {
-				this.setupWriteData();
-			}
 
-			// 2. 업데이트할 데이터를 서버에 요청하여 업데이트한다.
-			evt = this.fire('things-grid-handle-save', this.grid, { cancelable: true });
-			if(!evt.defaultPrevented) {
-				if(!this.writeData || this.writeData.length == 0) {
-					this.openInfoMsg({ title : 'Nothing to Save', text : "There's nothing to save", type : 'info' });
-				} else {
-					this.updateMultipleData(this.gridSaveAction);
+			try{
+				// 1. 업데이트할 데이터를 셋업한다.
+				var evt = this.fire('things-grid-handle-build-writedata', this.grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					this.setupWriteData();
 				}
+				// 2. 업데이트할 데이터를 서버에 요청하여 업데이트한다.
+				evt = this.fire('things-grid-handle-save', this.grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					if(!this.writeData || this.writeData.length == 0) {
+						this.openInfoMsg({ title : 'Nothing to Save', text : "There's nothing to save", type : 'info' });
+					} else {
+						this.updateMultipleData(this.gridSaveAction);
+					}
+				}
+			}catch(err){
+				this.openInfoMsg({ 
+						type : 'warning', 
+						title : Things.DataGlobal.t(err.title), 
+						text : Things.DataGlobal.t(err.message,err)
+					});
 			}
 		},
 
+		checkValidation: function(changedData){
+			var self = this
+			var notnull = this.columns.filter(function(column){
+				if(column.fieldName=='id') return false;
+				else return !column.nullable
+			});
+			var checkLength = this.columns.filter(function(column){
+				return column.maxValueLength
+			});
+
+			changedData.forEach(function(data){
+				notnull.forEach(function(notnullField){
+					if(!data[notnullField.fieldName]){
+						throw {value:notnullField.header.text, 
+							   title: 'error.VALIDATION_ERROR',
+							   message: 'error.SHOULD_NOT_BE_EMPTY'}
+					}
+				})
+			})
+		},
 		/**
 		 * 그리드에서 정보를 추출하여 Save(저장/삭제/추가)할 정보를 writeData에 할당한다.
 		 * 이 로직을 override하려면 things-grid-handle-build-writedata 이벤트를 prevent시키고 별도의 할당 로직을 작성해야 한다.
@@ -129,15 +157,11 @@
 		 */
 		setupWriteData: function() {
 			var changedDataList = [];
-			try {
-				this._configureChangedData(changedDataList, 'created', 'c');
-				this._configureChangedData(changedDataList, 'updated', 'u');
-				this._configureChangedData(changedDataList, 'deleted', 'd');
-				this.writeData = changedDataList;
-				this.fire('things-grid-handle-built-writedata', this.writeData);
-			} catch (err) {
-				this.openInfoMsg({ type : 'warning', title : 'Grid Error', text : err.message });
-			}				
+			this._configureChangedData(changedDataList, 'created', 'c');
+			this._configureChangedData(changedDataList, 'updated', 'u');
+			this._configureChangedData(changedDataList, 'deleted', 'd');
+			this.writeData = changedDataList;
+			this.fire('things-grid-handle-built-writedata', this.writeData);			
 		},
 
 		/**
@@ -149,10 +173,18 @@
 		 */
 		_configureChangedData: function(changedData, changeType, changeFlag) {
 			var changed = this.dataSet.getStateRows(changeType);
+
 			for (var i = 0; i < changed.length; i++) {
 				var changedRow = this.dataSet.getRowObject(changed[i]);
 				changedRow.cud_flag_ = changeFlag;
 				changedData.push(changedRow);
+			}
+			if(changeType!='deleted'){
+				// 1. 업데이트할 데이터를 점검한다.
+				var evt = this.fire('things-grid-handle-validation', this.grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					this.checkValidation(changedData);
+				}				
 			}
 		},
 
