@@ -423,6 +423,8 @@
                 // 6. Row Height && Fixed columns
                 this.grid.displayOptions().setFixedColumnMovable(true);
                 this.grid.displayOptions().setFixedColumnResizable(true);
+                // 7. set edit option to auto commit
+                // this.grid.editOptions().setAutoCommit(true);
 
                 var imageRendererExist = false;
                 this.columns.forEach(function(column) {
@@ -710,6 +712,7 @@
         _gridDataChanged: function() {
             var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
             if (!evt.defaultPrevented && this.data && this.dataSet) {
+                this.grid.commit();
                 this.dataSet.setRows(this.data);
                 this.fire('things-grid-data-changed', this.data);
             }
