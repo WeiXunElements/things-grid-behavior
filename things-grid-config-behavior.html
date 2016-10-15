@@ -712,7 +712,7 @@
         _gridDataChanged: function() {
             var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
             if (!evt.defaultPrevented && this.data && this.dataSet) {
-                this.grid.commit();
+                if(this.grid) this.grid.commit();
                 this.dataSet.setRows(this.data);
                 this.fire('things-grid-data-changed', this.data);
             }
