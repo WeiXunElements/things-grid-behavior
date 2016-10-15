@@ -197,13 +197,13 @@
 				var row = this.dataSet.getRowObject(rows[0]._index);
 
 				// 2. voucherConfig가 설정이 안 되어 있다면 CustomTemplate 호출하여 Template을 리턴 받아서 voucherConfig를 설정한다.
-				if (!this.voucherConfig) {
+				//if (!this.voucherConfig) {
 					this.getChitTemplate(row);
 
 					// 3. CustomTemplate을 호출하여 로직을 수행한 결과 데이터를 받는다.
-				} else {
+				//} else {
 					this.getTemplateData(row);
-				}
+				//}
 			}
 		},
 
@@ -214,8 +214,9 @@
 		 */
 		getChitTemplate: function(selectedRow) {
 			var ajax = document.createElement('things-ajax');
-			ajax.resourceUrl = 'diy_templates/' + this.diyTemplateId;
-			ajax.resourceAction = 'find';
+			ajax.resourceUrl = 'diy_templates/' + this.diyTemplateId + '/dynamic_template';
+			ajax.resourceAction = 'create';
+			ajax.body = { resource_id : selectedRow.id };
 			var me = this;
 
 			ajax.addEventListener('things-ajax-response', function(event) {
@@ -239,8 +240,8 @@
 				name: 'resource_id',
 				value: selectedRow.id
 			}];
-			var me = this;
 
+			var me = this;
 			ajax.addEventListener('things-ajax-response', function(event) {
 				me.doPrint(event.detail);
 			});
