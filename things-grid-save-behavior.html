@@ -105,8 +105,7 @@
 		saveGridData: function(e) {
 			this.grid.commit();
 
-
-			try{
+			try {
 				// 1. 업데이트할 데이터를 셋업한다.
 				var evt = this.fire('things-grid-handle-build-writedata', this.grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
@@ -121,7 +120,7 @@
 						this.updateMultipleData(this.gridSaveAction);
 					}
 				}
-			}catch(err){
+			} catch(err) {
 				this.openInfoMsg({ 
 						type : 'warning', 
 						title : Things.DataGlobal.t(err.title), 
@@ -130,26 +129,29 @@
 			}
 		},
 
-		checkValidation: function(changedData){
-			var self = this
-			var notnull = this.columns.filter(function(column){
-				if(column.fieldName=='id') return false;
-				else return !column.nullable
-			});
-			var checkLength = this.columns.filter(function(column){
-				return column.maxValueLength
+		checkValidation: function(changedData) {
+			var self = this;
+			var notnull = this.columns.filter(function(column) {
+				if(column.fieldName == 'id') {
+					return false;
+				} else {
+					return !(typeof(column.nullable) == 'undefined' || column.nullable == null || column.nullable === true);
+				}
 			});
 
-			changedData.forEach(function(data){
-				notnull.forEach(function(notnullField){
-					if(!data[notnullField.fieldName]){
-						throw {value:notnullField.header.text, 
-							   title: 'error.VALIDATION_ERROR',
-							   message: 'error.SHOULD_NOT_BE_EMPTY'}
+			changedData.forEach(function(data) {
+				notnull.forEach(function(notnullField) {
+					if(!data[notnullField.fieldName]) {
+						throw { 
+							value:notnullField.header.text, 
+							title: 'error.VALIDATION_ERROR',
+							message: 'error.SHOULD_NOT_BE_EMPTY'
+						};
 					}
 				})
-			})
+			});
 		},
+
 		/**
 		 * 그리드에서 정보를 추출하여 Save(저장/삭제/추가)할 정보를 writeData에 할당한다.
 		 * 이 로직을 override하려면 things-grid-handle-build-writedata 이벤트를 prevent시키고 별도의 할당 로직을 작성해야 한다.
@@ -209,7 +211,6 @@
 
 			ajax.generateRequest();
 		}
-		
 	};
 
 </script>
