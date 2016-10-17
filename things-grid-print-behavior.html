@@ -197,13 +197,7 @@
 				var row = this.dataSet.getRowObject(rows[0]._index);
 
 				// 2. voucherConfig가 설정이 안 되어 있다면 CustomTemplate 호출하여 Template을 리턴 받아서 voucherConfig를 설정한다.
-				//if (!this.voucherConfig) {
-					this.getChitTemplate(row);
-
-					// 3. CustomTemplate을 호출하여 로직을 수행한 결과 데이터를 받는다.
-				//} else {
-					this.getTemplateData(row);
-				//}
+				this.getChitTemplate(row);
 			}
 		},
 
