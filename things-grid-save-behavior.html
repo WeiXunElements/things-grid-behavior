@@ -122,20 +122,23 @@
 				}
 			} catch(err) {
 				this.openInfoMsg({ 
-						type : 'warning', 
-						title : Things.DataGlobal.t(err.title), 
-						text : Things.DataGlobal.t(err.message,err)
-					});
+					type : 'warning', 
+					title : Things.DataGlobal.t(err.title), 
+					text : Things.DataGlobal.t(err.message,err)
+				});
 			}
 		},
 
+		/**
+		 * 저장 전 Validation
+		 */
 		checkValidation: function(changedData) {
 			var self = this;
 			var notnull = this.columns.filter(function(column) {
 				if(column.fieldName == 'id') {
 					return false;
 				} else {
-					return !(typeof(column.nullable) == 'undefined' || column.nullable == null || column.nullable === true);
+					return column.nullable === false;
 				}
 			});
 
