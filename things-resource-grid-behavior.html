@@ -99,8 +99,8 @@
 		 * @param {Object} event things-grid-configure-failed 이벤트 
 		 */
 		_gridConfigureFailed: function(event) {
-			var title = 'Grid Configuration Error';
-			var text = 'Error : ' + event.detail.error;
+			var title = Things.DataGlobal.t('text.grid_config_error');
+			var text = event.detail.error;
 			this.openInfoMsg({ type : 'error', title : title, text : text });
 		}
 	};

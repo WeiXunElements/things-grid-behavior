@@ -115,17 +115,13 @@
 				evt = this.fire('things-grid-handle-save', this.grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
 					if(!this.writeData || this.writeData.length == 0) {
-						this.openInfoMsg({ title : 'Nothing to Save', text : "There's nothing to save", type : 'info' });
+						this.openInfoMsg({ title : Things.DataGlobal.t('text.Nothing changed'), text : Things.DataGlobal.t('text.Nothing changed'), type : 'info' });
 					} else {
 						this.updateMultipleData(this.gridSaveAction);
 					}
 				}
 			} catch(err) {
-				this.openInfoMsg({ 
-					type : 'warning', 
-					title : Things.DataGlobal.t(err.title), 
-					text : Things.DataGlobal.t(err.message,err)
-				});
+				this.openInfoMsg({ type : 'error',  title : err.title,  text : err.message });
 			}
 		},
 
@@ -145,10 +141,10 @@
 			changedData.forEach(function(data) {
 				notnull.forEach(function(notnullField) {
 					if(!data[notnullField.fieldName]) {
-						throw { 
-							value:notnullField.header.text, 
-							title: 'error.VALIDATION_ERROR',
-							message: 'error.SHOULD_NOT_BE_EMPTY'
+						throw {
+							value: notnullField.header.text, 
+							title: Things.DataGlobal.t('error.VALIDATION_ERROR'),
+							message: Things.DataGlobal.t('error.SHOULD_NOT_BE_EMPTY', { value : notnullField.header.text })
 						};
 					}
 				})

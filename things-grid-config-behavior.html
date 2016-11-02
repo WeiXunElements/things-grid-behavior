@@ -4,7 +4,7 @@
 <link rel="import" href="../things-msg-box-behavior/things-msg-box-behavior.html">
 <link rel="import" href="../things-resource-selector/things-resource-selector-behavior.html">
 
-<script src='dataludi-13705.min.js_'></script>
+<script src='dataludi-eval.min.js_'></script>
 <script src='dataludi-report.min.js_'></script>
 <!-- JSONFN Import -->
 <script src="../jsonfn/jsonfn.js"></script>
@@ -557,6 +557,11 @@
             if (!gridModel || !this.grid) return;
 
             var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel.slice();
+
+            if (this.enableDetailColumn) {
+                fields.unshift({fieldName : '_detail_'});
+            }
+
             if (fields && fields.length > 0) {
                 this.dataSet.setFields(fields);
                 this.dataSet.setCheckStates(true);
@@ -599,7 +604,7 @@
                     width: 30,
                     imageList: 'images',
                     header: {
-                        text: ' '
+                        text: ''
                     },
                     renderer: {
                         type: 'icon'
@@ -789,20 +794,7 @@
 
             var iconStyle = column.styles().iconIndex();
 
-            /*if (column._header && column._header._text == '...' && column._renderer && column._renderer.type && column._renderer.type == 'icon') {
-                var matchColumn = me.columns.filter(function(col) {
-                    return (column.name() == col.name);
-                });
-                var eventDetail = {
-                    userData: matchColumn ? matchColumn[0].userData : null,
-                    index: index
-                };
-                var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
-                if (!evt.defaultPrevented) {
-                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
-                }
-
-            } else*/ if (iconStyle == 'resource-selector') {
+            if (iconStyle == 'resource-selector') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
                 });
@@ -830,10 +822,7 @@
                         date: rowObj[column.name()]
                     };
 
-                    var event = {};
-                    event.dataObj = dataObj;
-                    event.callback = me._applySelectedDate;
-                    me.fire('things-date-picker-toggle', event);
+                    me.fire('things-date-picker-toggle', { dataObj : dataObj, callback : me._applySelectedDate });
                 }
 
             } else if (iconStyle == 'image-selector' || iconStyle == 'image-renderer') {
@@ -851,10 +840,7 @@
                         displayField: 'id'
                     };
 
-                    var event = {};
-                    event.dataObj = dataObj;
-                    event.callback = me._applySelectedImage;
-                    me.fire('things-image-selector-toggle', event);
+                    me.fire('things-image-selector-toggle', { dataObj : dataObj, callback : me._applySelectedImage });
                 }
 
             } else if (iconStyle == 'resource-format-selector') {
@@ -889,6 +875,9 @@
             grid.refreshView();
         },
 
+        /**
+         * image selector dialog 내부에서 실행되는 callback 함수
+         */
         _applySelectedImage: function(dataObj) {
             var grid = dataObj.ownerGrid;
             var rowObj = dataObj.ownerGridObj;
