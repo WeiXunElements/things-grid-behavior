@@ -115,7 +115,7 @@
 				evt = this.fire('things-grid-handle-save', this.grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
 					if(!this.writeData || this.writeData.length == 0) {
-						this.openInfoMsg({ title : Things.DataGlobal.t('text.Nothing changed'), text : Things.DataGlobal.t('text.Nothing changed'), type : 'info' });
+						this.openInfoMsg({ title : Things.DataGlobal.t('title.info'), text : Things.DataGlobal.t('text.Nothing changed'), type : 'info' });
 					} else {
 						this.updateMultipleData(this.gridSaveAction);
 					}
@@ -130,16 +130,13 @@
 		 */
 		checkValidation: function(changedData) {
 			var self = this;
-			var notnull = this.columns.filter(function(column) {
-				if(column.fieldName == 'id') {
-					return false;
-				} else {
-					return column.nullable === false;
-				}
+
+			var notnullFields = this.columns.filter(function(column) {
+				return (column.fieldName == 'id') ? false : column.nullable === false;
 			});
 
 			changedData.forEach(function(data) {
-				notnull.forEach(function(notnullField) {
+				notnullFields.forEach(function(notnullField) {
 					if(!data[notnullField.fieldName]) {
 						throw {
 							value: notnullField.header.text, 
@@ -180,7 +177,8 @@
 				changedRow.cud_flag_ = changeFlag;
 				changedData.push(changedRow);
 			}
-			if(changeType!='deleted'){
+
+			if(changeType!='deleted') {
 				// 1. 업데이트할 데이터를 점검한다.
 				var evt = this.fire('things-grid-handle-validation', this.grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
@@ -211,5 +209,4 @@
 			ajax.generateRequest();
 		}
 	};
-
 </script>
