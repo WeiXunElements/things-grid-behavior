@@ -271,6 +271,7 @@
 
 			DLReport.preview(detail.reportGrid, detail.reportModel, detail.reportData, this.printOptions, this.isPrint);
 			// this.fire('iron-signal', {name: 'things-create-voucher-preview', data: detail});
+			document.getElementById('report-container').innerHTML='';
 			this.fire('things-grid-print-finished', event.detail);
 		}
 	}
