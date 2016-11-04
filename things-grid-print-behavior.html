@@ -250,6 +250,7 @@
 			var detail ={};
 
 			detail.reportGrid = DataLudi.createGridView('report-container', this.voucherConfig.gridColumns, true);
+			document.getElementById('report-container').innerHTML='';
 			detail.reportGridDataSet = DataLudi.createGridDataSet(this.voucherConfig.gridModel);
 			detail.reportGrid.setDataSource(detail.reportGridDataSet);
 			detail.reportGrid.setOptions({
@@ -271,7 +272,6 @@
 
 			DLReport.preview(detail.reportGrid, detail.reportModel, detail.reportData, this.printOptions, this.isPrint);
 			// this.fire('iron-signal', {name: 'things-create-voucher-preview', data: detail});
-			document.getElementById('report-container').innerHTML='';
 			this.fire('things-grid-print-finished', event.detail);
 		}
 	}
