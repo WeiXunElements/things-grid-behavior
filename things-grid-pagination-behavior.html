@@ -123,9 +123,13 @@
 			paginator.addEventListener("current-page-changed", function(ev) {
 				me.currentPage = this.currentPage;
 			});
+			
+			paginator.addEventListener("page-limit-changed", function(ev) {
+				me.limit = ev.detail.limit;
+			});
 
 			paginator.addEventListener("total-page-changed", function(ev) {
-				me.showPaginator = (me.paginatable) && (this.totalPage && this.totalPage > 1);
+				me.showPaginator = (me.paginatable) && (this.totalPage && this.totalPage >= 1);
 			});
 
 			paginator.addEventListener("page-start-idx-changed", function(ev) {
