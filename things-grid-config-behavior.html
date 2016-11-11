@@ -183,7 +183,8 @@
                 type: Object,
                 value: {
                     'onDataCellClicked': '_gridCellClicked',
-                    'onDataCellDblClicked': '_gridCellDblClicked'
+                    'onDataCellDblClicked': '_gridCellDblClicked',
+                    'onCellButtonClicked': '_gridCellButtonClicked'
                 }
             },
 
@@ -734,6 +735,27 @@
                 if (this.grid == null) {
                     this.initializeGrid();
                 }
+            }
+        },
+
+        /**
+         * Grid Cell Button Click 이벤트 핸들러
+         *
+         * @param {Object} grid
+         * @param {Object} index
+         */
+        _gridCellButtonClicked: function(grid, index) {
+            var column = index.column;
+            var styles = column.styles();
+
+            if(styles && styles.iconIndex() == 'resource-selector') {
+                var rowIdx = index.rowIndex;
+                var rowObj = index.getRow().getRowObject();
+                var fieldName = column.dataFieldName();
+                var dataSet = grid.dataSource();
+                rowObj[fieldName] = {};
+                dataSet.updateRow(rowIdx, rowObj);
+                grid.refreshView();
             }
         },
 
