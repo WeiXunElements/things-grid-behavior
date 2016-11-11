@@ -121,7 +121,7 @@
 					}
 				}
 			} catch(err) {
-				this.openInfoMsg({ type : 'error',  title : err.title,  text : err.message });
+				this.openInfoMsg({ type : 'error',  title : err.title ? err.title : Things.DataGlobal.t('error.VALIDATION_ERROR'),  text : err.message ? err.message : err.toString()});
 			}
 		},
 
@@ -139,7 +139,7 @@
 				notnullFields.forEach(function(notnullField) {
 					if(!data[notnullField.fieldName]) {
 						throw {
-							value: notnullField.header.text, 
+							value: (notnullField.header) ? notnullField.header.text : notnullField.fieldName, 
 							title: Things.DataGlobal.t('error.VALIDATION_ERROR'),
 							message: Things.DataGlobal.t('error.SHOULD_NOT_BE_EMPTY', { value : notnullField.header.text })
 						};
