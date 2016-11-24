@@ -493,6 +493,20 @@
         },
 
         /**
+         * Reset data
+         */
+        resetData: function() {
+            this.data = [];
+        },
+
+        /**
+         * 그리드 데이터를 리프레쉬  
+         */
+        refreshData: function(data) {
+            this.data = data;
+        },
+        
+        /**
          * 버튼이 존재하는지 여부 체크
          *
          * @param {String} buttonId
