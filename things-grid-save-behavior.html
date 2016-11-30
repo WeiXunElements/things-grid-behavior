@@ -115,7 +115,7 @@
 				evt = this.fire('things-grid-handle-save', this.grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
 					if(!this.writeData || this.writeData.length == 0) {
-						this.openInfoMsg({ title : Things.DataGlobal.t('title.info'), text : Things.DataGlobal.t('text.Nothing changed'), type : 'info' });
+						this.openInfoMsg({ title : Things.DataGlobal.t('title.info'), text : Things.DataGlobal.t('text.NOTHING_CHANGED'), type : 'info' });
 					} else {
 						this.updateMultipleData(this.gridSaveAction);
 					}
