@@ -65,7 +65,8 @@
 					config : this.config,
 					model : this.model,
 					columns : this.columns,
-					menuInfo : { title : '', resource_url : resourceUrl }
+					menuInfo : { title : '', resource_url : resourceUrl },
+					closeCallback : this.onGridSaveSuccess.bind(this)
 				};
 
 				this.fire('things-import-dialog-toggle', event);

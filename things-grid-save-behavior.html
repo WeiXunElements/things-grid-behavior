@@ -207,6 +207,13 @@
 			});
 
 			ajax.generateRequest();
+		},
+
+		/**
+		 * 그리드 저장 성공 
+		 */
+		onGridSaveSuccess: function(data) {
+			this.fire('things-grid-save-success', { detail : data });
 		}
 	};
 </script>
