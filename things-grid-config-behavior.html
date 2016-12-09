@@ -856,6 +856,12 @@
                         date: rowObj[column.name()]
                     };
 
+                    if(column.userData()) {
+                        var usrData = column.userData();
+                        if(usrData.minDate) dataObj.minDate = usrData.minDate;
+                        if(usrData.maxDate) dataObj.maxDate = usrData.maxDate;
+                    }
+
                     me.fire('things-date-picker-toggle', { dataObj : dataObj, callback : me._applySelectedDate });
                 }
 

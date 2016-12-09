@@ -75,12 +75,40 @@
 		 * Create Empty Row Data
 		 */
 		newRowData: function() {
-			var newData = {};
-			this.model.forEach(function(fieldModel) { 
-				newData[fieldModel.fieldName] = fieldModel.defaultValue ? fieldModel.defaultValue : null; 
-			});
+			var newData = {}, me = this;
+			this.model.forEach(function(fieldModel) { newData[fieldModel.fieldName] = me._findDefaultValue(fieldModel); });
 			return newData;
+		},
+
+		/**
+		 * fieldModel에 따라 기본값을 추출한다.
+		 */
+		_findDefaultValue: function(fieldModel) {
+			if(fieldModel.rank && fieldModel.rank == true) {
+				var rowCount = this.dataSet.rowCount();
+				if(!rowCount || rowCount == 0) return fieldModel.increment;
+
+				var gridItems = this.dataSet.getRowObjects(0, rowCount);
+				var rankList = gridItems.map(function(item) { return item[fieldModel.fieldName]; });
+				var maxRank = Math.max(...rankList);
+				return maxRank + fieldModel.increment;
+
+			} else if(fieldModel.defaultValue) {
+				var defVal = fieldModel.defaultValue;
+
+				if(typeof defVal == 'string' && defVal.indexOf('$today') >= 0 ) {
+					defVal = defVal.replace('$today', 'var dt = new Date(); dt.setDate(dt.getDate()') + ')';
+					var time = eval(defVal);
+					var date = new Date(time);
+					return fieldModel.type ? date : moment(date).format('YYYY-MM-DD');
+
+				} else {
+					return defVal;
+				}
+
+			} else {
+				return null;
+			}
 		}
 	};
-
 </script>
