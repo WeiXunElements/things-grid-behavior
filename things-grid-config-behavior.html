@@ -794,17 +794,10 @@
                 if (thingsGrid.dataSet && colIndex >= 0) {
                     thingsGrid._setSelectedCellData(thingsGrid.dataSet.getValue(rowIndex, colIndex));
 
-                    if(cellData.column._renderer &&cellData.column._renderer.type == 'image') {
-                        thingsGrid.fire('things-grid-cell-image-select', {
-                            row: thingsGrid.selectedRowData,
-                            cell: cellData
-                        });
-                    } else {
-                        thingsGrid.fire('things-grid-cell-data-select', {
-                            row: thingsGrid.selectedRowData,
-                            cell: cellData
-                        });
-                    }
+                    thingsGrid.fire('things-grid-cell-data-select', {
+                        row: thingsGrid.selectedRowData,
+                        cell: cellData
+                    });
                 }
 
                 if (thingsGrid.enableDetailColumn && cellData.column._name == 'Detail' &&
@@ -877,7 +870,8 @@
                         ownerGridObj: rowObj,
                         ownerGridIdx: index.rowIndex,
                         ownerGridColumn: column.name(),
-                        displayField: 'id'
+                        displayField: 'id',
+                        selectedImageId: rowObj[column.name()]
                     };
 
                     me.fire('things-image-selector-toggle', { dataObj : dataObj, callback : me._applySelectedImage });
