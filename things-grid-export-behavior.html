@@ -75,12 +75,16 @@
 		 */
 		exportExcel: function(e) {
 			var evt = this.fire('things-grid-handle-export', e.detail, { cancelable: true });
+
 			if(!evt.defaultPrevented) {
+				if(!this.data || this.data.length == 0) {
+					this.openInfoMsg({
+						title : Things.DataGlobal.t('text.Nothing selected'), 
+						text : Things.DataGlobal.t('text.Nothing selected'), 
+						type : 'info' 
+					});
 
-				// if(!this.data || this.data.length == 0) {
-				// 	this.openInfoMsg({ title : Things.DataGlobal.t('text.Nothing selected'), text : Things.DataGlobal.t('text.Nothing selected'), type : 'info' });
-
-				// } else {
+				} else {
 					new DataLudi.GridExcelExporter().export(this.grid, {
 						target: 'local',
 						fileName: this.exportFileName,
@@ -94,11 +98,9 @@
 							} else {
 								return v;
 							}
-            					}
+						}
 					});
-
-					// TODO listen export-finish event and fire event
-				// }
+				}
 			}
 		}
 	}
