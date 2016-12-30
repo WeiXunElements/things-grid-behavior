@@ -158,7 +158,7 @@
                     }, {
                         expression: "(row % 2) > 0",
                         styles: {
-                            background: '#0D333333'
+                            background: '#f9f9f9'
                         }
                     }];
                 }
@@ -400,7 +400,7 @@
                 }
 
                 // 그리드 Configuration
-                // 1. Undo & redo 
+                // 1. Undo & redo
                 this.dataSet.setUndoable(true);
                 this.grid.setUndoable(true);
 
@@ -430,7 +430,7 @@
                     }
                 });
 
-                // ImageRenderer가 있다면 Row Height를 100으로 확장 
+                // ImageRenderer가 있다면 Row Height를 100으로 확장
                 if(imageRendererExist) {
                     if(this.rowHeight <= 50) this.rowHeight = 100;
                 }
@@ -439,12 +439,12 @@
 
 
                 // 7. Styles
-                this.grid.loadStyles({ 
-                  body: { 
-                    rowHover: { background: '#2000ff88' },
+                this.grid.loadStyles({
+                  body: {
+                    rowHover: { background: '#26e3ad5f' },
                     fixedCell: { background: '', borderRight: '', borderBottom: ''}
                   }
-                });                
+                });
 
                 this.resizeGrid();
                 this.fire('things-grid-configured', this.grid);
@@ -498,12 +498,12 @@
         },
 
         /**
-         * 그리드 데이터를 리프레쉬  
+         * 그리드 데이터를 리프레쉬
          */
         refreshData: function(data) {
             this.data = data;
         },
-        
+
         /**
          * 버튼이 존재하는지 여부 체크
          *
@@ -601,7 +601,7 @@
                 }
             });
 
-            // ImageRenderer가 있다면 Row Height를 60으로 확장 
+            // ImageRenderer가 있다면 Row Height를 60으로 확장
             if(imageRendererExist) {
                 if(this.rowHeight <= 50) this.rowHeight = 80;
             }
