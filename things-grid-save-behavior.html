@@ -193,6 +193,7 @@
 		 */
 		updateMultipleData: function(gridSaveUrl) {
 			var ajax = document.createElement('things-ajax');
+			if(this.resourceId) ajax.resourceId = this.resourceId;
 			ajax.resourceUrl = gridSaveUrl;
 			ajax.resourceAction = 'update_multiple';
 			ajax.body = this.writeData;
