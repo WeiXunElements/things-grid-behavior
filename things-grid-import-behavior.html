@@ -78,6 +78,7 @@
 			if(!evt.defaultPrevented) {
 				var excelImport = document.createElement('things-import-excel');
 				excelImport.sheetName = this.sheetName;
+				excelImport.gridColumns = this.columns;
 				var me = this;
 
 				excelImport.addEventListener('excel-process-finish', function(event) {
