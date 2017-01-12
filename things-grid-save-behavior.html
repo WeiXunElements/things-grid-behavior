@@ -137,9 +137,18 @@
 
 			changedData.forEach(function(data) {
 				notnullFields.forEach(function(notnullField) {
-					if(!data[notnullField.fieldName]) {
+					var valid = true;
+					var fieldName = notnullField.fieldName;
+
+					if(notnullField.styles && notnullField.styles.iconIndex && notnullField.styles.iconIndex == 'resource-selector') {
+						valid = data[fieldName] ? ((!data[fieldName].id || data[fieldName].id == 0) ? false : true) : false;
+					} else {
+						valid = data[fieldName] ? true : false;
+					}
+
+					if(valid == false) {
 						throw {
-							value: (notnullField.header) ? notnullField.header.text : notnullField.fieldName, 
+							value: (notnullField.header) ? notnullField.header.text : fieldName, 
 							title: Things.DataGlobal.t('error.VALIDATION_ERROR'),
 							message: Things.DataGlobal.t('error.SHOULD_NOT_BE_EMPTY', { value : notnullField.header.text })
 						};
