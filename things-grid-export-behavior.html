@@ -57,15 +57,24 @@
 			var grid = e.detail;
 
 			if (grid && this.isButtonExist('export-btn')) {
-				var evt = this.fire('things-grid-export-configure', grid, {
-					cancelable: true
-				});
+				var evt = this.fire('things-grid-export-configure', grid, { cancelable: true });
 				if (!evt.defaultPrevented) {
 					// button tap 이벤트 추가
 					this.listen(this.$['button-group'], 'export-btn-tap', 'exportExcel');
 					this.fire('things-grid-export-configured', grid);
 				}
 			}
+		},
+
+		/**
+		 * Export를 위한 임시 그리드 컬럼 추출 
+		 */
+		findExportTempColumns: function() {
+			var tempColumns = [];
+			this.columns.forEach(function(column) {
+				if(column.width > 0) tempColumns.push(column);
+			});
+			return tempColumns;
 		},
 
 		/**
@@ -79,17 +88,27 @@
 			if(!evt.defaultPrevented) {
 				if(!this.data || this.data.length == 0) {
 					this.openInfoMsg({
-						title : Things.DataGlobal.t('text.Nothing selected'), 
-						text : Things.DataGlobal.t('text.Nothing selected'), 
+						title : Things.DataGlobal.t('text.NOTHING_SELECTED'), 
+						text : Things.DataGlobal.t('text.NOTHING_SELECTED'), 
 						type : 'info' 
 					});
 
 				} else {
+					var originalColumns = this.grid.columns();
+					var exportColumns = this.findExportTempColumns();
+					this.grid.setColumns(exportColumns);
+
 					new DataLudi.GridExcelExporter().export(this.grid, {
 						target: 'local',
 						fileName: this.exportFileName,
-						numberFormat: '#,##0',
+						numberFormat: '#,###',
 						datetimeFormat: 'yyyy-mm-dd',
+						rowIndicator: 'hidden',
+						async: true,
+						showProgress: true,
+						onFinished: function (grid, error, elapsed) {
+							grid.setColumns(originalColumns);
+						},
 						objectCallback: function (row, column, v) {
 							var userData = column.userData();
 							if(typeof v == 'object' && typeof userData == 'object') {
