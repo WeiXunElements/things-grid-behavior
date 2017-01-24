@@ -69,17 +69,69 @@
 				var rows = this.grid.getCheckedRows();
 				if (rows && rows.length > 0) {
 					var ds = this.dataSet;
+					var checkDeleteFlag = this.deleteRecordValidation ? true : false;
+
 					rows.forEach(function(row) {
+						if(checkDeleteFlag) {
+							var data = ds.getRowObject(row.dataIndex());
+							if(!this.checkDeleteValidations(data)) return;
+						}
+
 						if (ds.getRowState(row.dataIndex()) == 'created') {
 							ds.setRowState(row.dataIndex(), 'createAndDeleted');
 						} else {
 							ds.setRowState(row.dataIndex(), 'deleted');
 						}
-					});
+					}.bind(this));
 				}
 			}
-		}
-		
-	};
+		},
 
+		/**
+		 * 삭제 전 Validations 처리 
+		 *
+		 * @param {Object} data
+		 */
+		checkDeleteValidations: function(data) {
+			if(this.deleteRecordValidation.length) {
+				this.deleteRecordValidation.forEach(function(deleteValidation) { this.checkDeleteValidation(deleteValidation, data) }.bind(this));
+			} else {
+				this.checkDeleteValidation(this.deleteRecordValidation, data);
+			}
+		},
+
+		/**
+		 * 삭제 전 Validation 처리 
+		 *
+		 * @param {Object} deleteValidation
+		 * @param {Object} data
+		 */
+		checkDeleteValidation: function(deleteValidation, data) {
+			var recordFieldVal = data[deleteValidation.fieldName];
+			var oper = deleteValidation.operator;
+			var valid = true;
+
+			if(oper == 'notin') {
+				var valArr = deleteValidation.fieldValue.split(',');
+				valid = (valArr.indexOf(recordFieldVal) > 0);
+
+			} else if(oper == 'in') {
+				var valArr = deleteValidation.fieldValue.split(',');
+				valid = (valArr.indexOf(recordFieldVal) < 0);
+
+			} else if(oper == 'noteq') {
+				valid = (recordFieldVal == deleteValidation.fieldValue);
+
+			} else {
+				valid = (recordFieldVal != deleteValidation.fieldValue);
+			}
+
+			if(!valid) {
+				var msg = Things.DataGlobal.t('error.CAN_NOT_BE_DELETED_A_IS_B', { a : deleteValidation.fieldName, b : recordFieldVal });
+				this.openInfoMsg({ type : 'error',  title : Things.DataGlobal.t('error.VALIDATION_ERROR'), text : msg });
+			}
+
+			return valid;
+		}
+	};
 </script>

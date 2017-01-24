@@ -217,7 +217,25 @@
                 type: Object,
                 notify: true,
                 readOnly: true
-            }
+            },
+
+            /**
+             * 삭제시 validation 체크 
+             * { fieldName : 'finished', operator : 'eq', fieldValue : true } or
+             * { fieldName : 'status', operator : 'in', fieldValue : 'canceled,deleted' } or 
+             * [{ fieldName : 'finished', operator : 'eq', fieldValue : true }, { fieldName : 'status', operator : 'in', fieldValue : 'canceled,deleted' }]
+             */
+            deleteRecordValidation: {
+                type: Object
+            },
+
+            /**
+             * 수정시 validation 체크 
+             * { fieldName : 'name', operator : 'not-eq', fieldValue : 'running' }
+             */
+            /*updateRecordValidation: {
+                type: Object
+            }*/
 
             /**
              * 그리드 구성 전 발생하는 이벤트
@@ -424,15 +442,15 @@
                 // 7. set edit option to auto commit
                 // this.grid.editOptions().setAutoCommit(true);
 
-                var imageRendererExist = false;
+                var multilineFlag = false;
                 this.columns.forEach(function(column) {
-                    if(!imageRendererExist && column.styles && column.styles.iconIndex == 'image-renderer') {
-                        imageRendererExist = true;
+                    if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
+                        multilineFlag = true;
                     }
                 });
 
                 // ImageRenderer가 있다면 Row Height를 100으로 확장
-                if(imageRendererExist) {
+                if(multilineFlag) {
                     if(this.rowHeight <= 50) this.rowHeight = 100;
                 }
 
@@ -588,7 +606,7 @@
         _setGridColumns: function(columns) {
             if(!columns || !this.grid) return;
 
-            var imageRendererExist = false;
+            var multilineFlag = false;
 
             // list type의 그리드 컬럼에 라벨 벨류를 함께 표시하도록 설정
             columns.forEach(function(column) {
@@ -597,14 +615,14 @@
                     column.editor.listItemColumned = true;
                 }
 
-                if(!imageRendererExist && column.editor == 'image-renderer') {
-                    imageRendererExist = true;
+                if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
+                    multilineFlag = true;
                 }
             });
 
             // ImageRenderer가 있다면 Row Height를 60으로 확장
-            if(imageRendererExist) {
-                if(this.rowHeight <= 50) this.rowHeight = 80;
+            if(multilineFlag) {
+                if(this.rowHeight <= 50) this.rowHeight = 100;
             }
 
             var gridColumns = (typeof(columns) === 'string') ? JSONfn.parse(columns) : columns.slice();
