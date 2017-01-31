@@ -96,7 +96,7 @@
 			if(this.deleteRecordValidation.length) {
 				this.deleteRecordValidation.forEach(function(deleteValidation) { this.checkDeleteValidation(deleteValidation, data) }.bind(this));
 			} else {
-				this.checkDeleteValidation(this.deleteRecordValidation, data);
+				return this.checkDeleteValidation(this.deleteRecordValidation, data);
 			}
 		},
 
