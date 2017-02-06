@@ -894,6 +894,31 @@
                     me.fire('things-image-selector-toggle', { dataObj : dataObj, callback : me._applySelectedImage });
                 }
 
+            } else if (iconStyle == 'file-selector') {
+                var evt = me.fire('things-grid-file-selector-edit', eventDetail, { cancelable: true});
+                if(!evt.defaultPrevented) {
+                    var dataSet = grid.dataSource();
+                    var row = grid.focusedRow();
+                    var rowObj = row.getRowObject();
+                    
+                    var matchColumn = me.columns.filter(function(col) {
+                        return (column.name() == col.name);
+                    });
+
+                    var defaultStorage = matchColumn ? matchColumn[0].userData.defaultStorage : null;
+
+                    var dataObj = {
+                        owner: me,
+                        ownerGrid: grid,
+                        ownerGridObj: rowObj,
+                        ownerGridIdx: index.rowIndex,
+                        ownerGridColumn: column.name(),
+                        selectedImageId: rowObj[column.name()],
+                        defaultStorage: defaultStorage
+                    };
+
+                    me.fire('things-file-selector-toggle', { dataObj : dataObj, callback: me._applySelectedFile });
+                }
             } else if (iconStyle == 'resource-format-selector') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
@@ -938,6 +963,21 @@
             rowObj[dataObj.ownerGridColumn] = dataObj.value;
             dataSet.updateRow(rowIdx, rowObj);
             grid.refreshView();
+        },
+
+        /**
+         * file selector dialog 내부에서 실행되는 callback 함수
+         */
+        _applySelectedFile: function(dataObj) {
+            var grid = dataObj.ownerGrid;
+            var rowObj = dataObj.ownerGridObj;
+            var rowIdx = dataObj.ownerGridIdx;
+            var dataSet = grid.dataSource();
+
+            rowObj['attachment'] = { id : dataObj.value, name : dataObj.displayValue };
+            dataSet.updateRow(rowIdx, rowObj);
+            grid.refreshView();
+
         }
     };
 
