@@ -1,3 +1,6 @@
+<link rel="import" href="../things-libraries/things-jszip-lib.html">
+<link rel="import" href="../things-libraries/things-jsxlsx-lib.html">
+
 <script>
 	window.Things = window.Things || {};
 
@@ -188,7 +191,6 @@
 	}
 
 </script>
-<script src='jszip.min.js'></script>
 <script type="text/javascript">
 	/* Blob.js
 	 * A Blob implementation.
@@ -251,7 +253,9 @@
 				btoa = view.btoa,
 				atob = view.atob
 
-			, ArrayBuffer = view.ArrayBuffer, Uint8Array = view.Uint8Array;
+				,
+				ArrayBuffer = view.ArrayBuffer,
+				Uint8Array = view.Uint8Array;
 			FakeBlob.fake = FB_proto.fake = true;
 			while (file_ex_code--) {
 				FileException.prototype[file_ex_codes[file_ex_code]] = file_ex_code + 1;

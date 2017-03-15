@@ -1,9 +1,6 @@
-<script src='jszip.min.js'></script>
-
 <link rel="import" href="../polymer/polymer.html">
 
 <script>
-
 	window.Things = window.Things || {};
 
 	/**
@@ -25,7 +22,7 @@
 			 * @event things-grid-soft-deleterow-configured
 			 */
 			/**
-			 * 그리드 행 삭제 전 발생하는 이벤트. 
+			 * 그리드 행 삭제 전 발생하는 이벤트.
 			 * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
 			 *
 			 * @event things-grid-handle-deleterow
@@ -33,22 +30,24 @@
 		},
 
 		listeners: {
-			'things-grid-configured' : '_initializeSoftDeleterowBehavior'
+			'things-grid-configured': '_initializeSoftDeleterowBehavior'
 		},
 
 		/**
 		 * 그리드 구성이 완료된 후 GridSoftDeleterowBehavior를 initialize 한다.
 		 *
-		 * @param {Object} e things-grid-configured 이벤트 
+		 * @param {Object} e things-grid-configured 이벤트
 		 */
 		_initializeSoftDeleterowBehavior: function(e) {
 			var grid = e.detail;
 
-			if(grid && this.isButtonExist('delete-btn')) {
-				var evt = this.fire('things-grid-soft-deleterow-configure', grid, { cancelable: true });
-				if(!evt.defaultPrevented) {
+			if (grid && this.isButtonExist('delete-btn')) {
+				var evt = this.fire('things-grid-soft-deleterow-configure', grid, {
+					cancelable: true
+				});
+				if (!evt.defaultPrevented) {
 					grid.editOptions().setDeletable(true);
-					// button tap 이벤트 추가 
+					// button tap 이벤트 추가
 					this.listen(this.$['button-group'], 'delete-btn-tap', 'removeGridRow');
 					this.fire('things-grid-soft-deleterow-configured', grid);
 				}
@@ -56,25 +55,27 @@
 		},
 
 		/**
-		 * Soft Delete Row. 
+		 * Soft Delete Row.
 		 * 실제 삭제하지 않고 플래그 처리한 후 save시 서버에서 일괄 처리한다.
 		 *
 		 * @param {Object} e button tap event
 		 */
 		removeGridRow: function(e) {
 			this.grid.commit();
-			
-			var evt = this.fire('things-grid-handle-deleterow', e.detail, { cancelable: true });
-			if(!evt.defaultPrevented) {
+
+			var evt = this.fire('things-grid-handle-deleterow', e.detail, {
+				cancelable: true
+			});
+			if (!evt.defaultPrevented) {
 				var rows = this.grid.getCheckedRows();
 				if (rows && rows.length > 0) {
 					var ds = this.dataSet;
 					var checkDeleteFlag = this.deleteRecordValidation ? true : false;
 
 					rows.forEach(function(row) {
-						if(checkDeleteFlag) {
+						if (checkDeleteFlag) {
 							var data = ds.getRowObject(row.dataIndex());
-							if(!this.checkDeleteValidations(data)) return;
+							if (!this.checkDeleteValidations(data)) return;
 						}
 
 						if (ds.getRowState(row.dataIndex()) == 'created') {
@@ -88,20 +89,22 @@
 		},
 
 		/**
-		 * 삭제 전 Validations 처리 
+		 * 삭제 전 Validations 처리
 		 *
 		 * @param {Object} data
 		 */
 		checkDeleteValidations: function(data) {
-			if(this.deleteRecordValidation.length) {
-				this.deleteRecordValidation.forEach(function(deleteValidation) { this.checkDeleteValidation(deleteValidation, data) }.bind(this));
+			if (this.deleteRecordValidation.length) {
+				this.deleteRecordValidation.forEach(function(deleteValidation) {
+					this.checkDeleteValidation(deleteValidation, data)
+				}.bind(this));
 			} else {
 				return this.checkDeleteValidation(this.deleteRecordValidation, data);
 			}
 		},
 
 		/**
-		 * 삭제 전 Validation 처리 
+		 * 삭제 전 Validation 처리
 		 *
 		 * @param {Object} deleteValidation
 		 * @param {Object} data
@@ -111,27 +114,35 @@
 			var oper = deleteValidation.operator;
 			var valid = true;
 
-			if(oper == 'notin') {
+			if (oper == 'notin') {
 				var valArr = deleteValidation.fieldValue.split(',');
 				valid = (valArr.indexOf(recordFieldVal) > 0);
 
-			} else if(oper == 'in') {
+			} else if (oper == 'in') {
 				var valArr = deleteValidation.fieldValue.split(',');
 				valid = (valArr.indexOf(recordFieldVal) < 0);
 
-			} else if(oper == 'noteq') {
+			} else if (oper == 'noteq') {
 				valid = (recordFieldVal == deleteValidation.fieldValue);
 
 			} else {
 				valid = (recordFieldVal != deleteValidation.fieldValue);
 			}
 
-			if(!valid) {
-				var msg = Things.DataGlobal.t('error.CAN_NOT_BE_DELETED_A_IS_B', { a : deleteValidation.fieldName, b : recordFieldVal });
-				this.openInfoMsg({ type : 'error',  title : Things.DataGlobal.t('error.VALIDATION_ERROR'), text : msg });
+			if (!valid) {
+				var msg = Things.DataGlobal.t('error.CAN_NOT_BE_DELETED_A_IS_B', {
+					a: deleteValidation.fieldName,
+					b: recordFieldVal
+				});
+				this.openInfoMsg({
+					type: 'error',
+					title: Things.DataGlobal.t('error.VALIDATION_ERROR'),
+					text: msg
+				});
 			}
 
 			return valid;
 		}
 	};
+
 </script>

@@ -1,5 +1,3 @@
-<script src='jszip.min.js'></script>
-
 <link rel="import" href="../polymer/polymer.html">
 
 <link rel="import" href="./things-grid-config-behavior.html">
@@ -11,62 +9,65 @@
 <link rel="import" href="./things-grid-save-behavior.html">
 
 <script>
-
-  window.Things = window.Things || {};
-
-  /**
-   * 가장 기본적인 Grid Behavior 
-   *
-   * @polymerBehavior Things.BasicGridBehavior
-   */
-  Things.BasicGridBehaviorImpl = {
-
-    properties: {
-      /**
-       * Button Group에 표시될 버튼 정보
-       */
-      buttons : {
-        type: Array,
-        value: function() {
-          return [];
-        }
-      }
-    },
-
-    listeners: {
-      'things-grid-configure-failed' : '_gridConfigureFailed'
-    },
-
-    observers: [
-      '_toolbarConfigChanged(paginatable, buttons)'
-    ],
+    window.Things = window.Things || {};
 
     /**
-     * 툴바 관련 설정 변경시 
+     * 가장 기본적인 Grid Behavior
      *
-     * @param {Boolean} paginatable
-     * @param {Array} buttons
+     * @polymerBehavior Things.BasicGridBehavior
      */
-    _toolbarConfigChanged: function(paginatable, buttons) {
-      this.enableToolbar = (paginatable || (buttons && buttons.length > 0));
-    },
+    Things.BasicGridBehaviorImpl = {
 
-    /**
-     * Grid 구성이 실패한 후 핸들러
-     * 
-     * @param {Event} event things-grid-configure-failed
-     */
-    _gridConfigureFailed: function(event) {
-      var title = 'Grid Configuration Error';
-      var text = 'Error : ' + event.detail.error;
-      this.openInfoMsg({ type : 'error', title : title, text : text });
-    }
-    
-  };
+        properties: {
+            /**
+             * Button Group에 표시될 버튼 정보
+             */
+            buttons: {
+                type: Array,
+                value: function() {
+                    return [];
+                }
+            }
+        },
 
-  Things.BasicGridBehavior = [
-    Things.BasicGridBehaviorImpl,
-    Things.GridConfigBehavior
-  ];
+        listeners: {
+            'things-grid-configure-failed': '_gridConfigureFailed'
+        },
+
+        observers: [
+            '_toolbarConfigChanged(paginatable, buttons)'
+        ],
+
+        /**
+         * 툴바 관련 설정 변경시
+         *
+         * @param {Boolean} paginatable
+         * @param {Array} buttons
+         */
+        _toolbarConfigChanged: function(paginatable, buttons) {
+            this.enableToolbar = (paginatable || (buttons && buttons.length > 0));
+        },
+
+        /**
+         * Grid 구성이 실패한 후 핸들러
+         *
+         * @param {Event} event things-grid-configure-failed
+         */
+        _gridConfigureFailed: function(event) {
+            var title = 'Grid Configuration Error';
+            var text = 'Error : ' + event.detail.error;
+            this.openInfoMsg({
+                type: 'error',
+                title: title,
+                text: text
+            });
+        }
+
+    };
+
+    Things.BasicGridBehavior = [
+        Things.BasicGridBehaviorImpl,
+        Things.GridConfigBehavior
+    ];
 
 </script>
