@@ -30,16 +30,6 @@
 			}
 
 			/**
-			 * 그리드 데이터 Save(저장/삭제/추가) 액션이 성공시 발생하는 이벤트
-			 *
-			 * @event things-grid-save-success
-			 */
-			/**
-			 * 그리드 데이터 Save(저장/삭제/추가) 액션시 에러 발생시 발생하는 이벤트
-			 *
-			 * @event things-grid-save-error
-			 */
-			/**
 			 * 그리드 Save(저장/삭제/추가) 버튼 클릭시 서버에 업데이트 요청할 writeData를 셋업하기 전 발생하는 이벤트
 			 * 따라서 외부에서 이 이벤트를 잡아서 event.preventDefault()를 호출하고
 			 * 별도로 writeData 할당 로직을 작성하면 기본 로직을 override 할 수 있다.
@@ -94,6 +84,15 @@
 					this.fire('things-grid-save-configured', grid);
 				}
 			}
+
+			if(grid && this.isButtonExist('clear-cache-btn')) {
+				var evt = this.fire('things-grid-clear-cache-configured', grid, { cancelable: true });
+				if(!evt.defaultPrevented) {
+					// button tap 이벤트 추가 
+					this.listen(this.$['button-group'], 'clear-cache-btn-tap', 'clearCache');
+					this.fire('things-grid-clear-cache-configured', grid);
+				}
+			}
 		},
 
 		/**
@@ -138,6 +137,8 @@
 
 		/**
 		 * 저장 전 Validation
+		 *
+		 * @param {Object} changedData
 		 */
 		checkValidation: function(changedData) {
 			var self = this;
@@ -214,6 +215,8 @@
 		/**
 		 * 변경된 데이터(writeData)를 서버에 업데이트 요청한다.
 		 * 이 로직을 override하려면 things-grid-handle-save 이벤트를 prevent시키고 별도의 할당 로직을 작성해야 한다.
+		 *
+		 * @param {String} gridSaveUrl
 		 */
 		updateMultipleData: function(gridSaveUrl) {
 			var ajax = document.createElement('things-ajax');
@@ -236,11 +239,25 @@
 
 		/**
 		 * 그리드 저장 성공
+		 *
+		 * @param {Object} data
 		 */
 		onGridSaveSuccess: function(data) {
 			this.fire('things-grid-save-success', {
 				detail: data
 			});
+		},
+
+		/**
+		 * 캐쉬 클리어
+		 *
+		 * @param {Object} event
+		 */
+		clearCache: function(event) {
+			var ajax = document.createElement('things-ajax');
+			ajax.resourceUrl = this.gridSaveAction.replace('update_multiple', 'clear_cache');
+			ajax.resourceAction = 'update';
+			ajax.generateRequest();
 		}
 	};
 
