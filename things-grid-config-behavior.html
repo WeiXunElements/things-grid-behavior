@@ -599,6 +599,30 @@
         },
 
         /**
+         * Code Data
+         *
+         * @param {Object} column
+         */
+        _addCodeData: function(column) {
+            var ajax = document.createElement('things-ajax');
+            ajax.resourceUrl = 'common_codes/show_by_name?name=' + column.userData.resourceName;
+            ajax.resourceAction = 'find';
+            column.lookupValues = [''];
+            column.lookupLabels = [''];
+
+            ajax.addEventListener('things-ajax-response', function(event) {
+                var code = event.detail;
+                code.items.forEach(function(item) {
+                    column.lookupLabels.push(item.description);
+                    column.lookupValues.push(item.name);
+                });
+                this.grid.setColumns(this.columns);
+            }.bind(this));
+
+            ajax.generateRequest();
+        },
+
+        /**
          * Set Grid Column Views
          *
          * @param {Array} / {String} columns
@@ -613,12 +637,16 @@
                 if(column.editor && column.editor.type == 'list') {
                     column.editor.listItemDisplay = 'labelValue';
                     column.editor.listItemColumned = true;
+                    
+                    if((!column.lookupValues || column.lookupValues.length == 0) && column.userData && column.userData.resourceName) {
+                        this._addCodeData(column);
+                    }
                 }
 
                 if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
                     multilineFlag = true;
                 }
-            });
+            }.bind(this));
 
             // ImageRenderer가 있다면 Row Height를 60으로 확장
             if(multilineFlag) {
