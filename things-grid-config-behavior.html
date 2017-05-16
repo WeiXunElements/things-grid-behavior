@@ -230,6 +230,14 @@
             },
 
             /**
+             * 연속 선택 이벤트를 막을지 허용할 지 여부 
+             */
+            preventMultiClickEvent: {
+                type: Boolean,
+                value: false
+            }
+
+            /**
              * 수정시 validation 체크 
              * { fieldName : 'name', operator : 'not-eq', fieldValue : 'running' }
              */
@@ -518,6 +526,8 @@
 
         /**
          * 그리드 데이터를 리프레쉬
+         *******
+         * @param {Object} data
          */
         refreshData: function(data) {
             this.data = data;
@@ -525,7 +535,7 @@
 
         /**
          * 버튼이 존재하는지 여부 체크
-         *
+         *******
          * @param {String} buttonId
          */
         isButtonExist: function(buttonId) {
@@ -560,7 +570,7 @@
 
         /**
          * Configurations changed
-         *
+         ********
          * @param {Object} model
          * @param {Object} columns
          */
@@ -580,7 +590,7 @@
 
         /**
          * Set Grid Model Fields
-         *
+         ********
          * @param {Array} / {String} gridModel
          */
         _setGridModel: function(gridModel) {
@@ -600,7 +610,7 @@
 
         /**
          * Code Data
-         *
+         ********
          * @param {Object} column
          */
         _addCodeData: function(column) {
@@ -624,7 +634,7 @@
 
         /**
          * Set Grid Column Views
-         *
+         ********
          * @param {Array} / {String} columns
          */
         _setGridColumns: function(columns) {
@@ -681,7 +691,7 @@
 
         /**
          * Set grid initial config information
-         *
+         ********
          * @param {Object} config
          */
         _setGridConfig: function(config) {
@@ -783,8 +793,8 @@
 
         /**
          * 화면 리사이즈 시 이벤트 핸들러
-         *
-         * @param {Object} iron-resize 이벤트
+         ********
+         * @param {Object} e iron-resize 이벤트
          */
         _gridResizeHandler: function(e) {
             var evt = this.fire('things-grid-resize', this.grid, { cancelable: true });
@@ -797,9 +807,9 @@
 
         /**
          * Grid Cell Button Click 이벤트 핸들러
-         *
-         * @param {Object} grid
-         * @param {Object} index
+         ********
+         * @param {Object} grid dataludi grid
+         * @param {Object} index cell 선택 index
          */
         _gridCellButtonClicked: function(grid, index) {
             var column = index.column;
@@ -818,9 +828,9 @@
 
         /**
          * Grid Cell Click 이벤트 핸들러
-         *
-         * @param {Object} grid
-         * @param {Object} cellData
+         ********
+         * @param {Object} grid dataludi grid
+         * @param {Object} cellData 선택된 celldata
          */
         _gridCellClicked: function(grid, cellData) {
             if (!grid._container_ || !cellData) return;
@@ -830,24 +840,30 @@
                 var rowIndex = cellData.getDataIndex(grid);
                 var colIndex = grid.focusedColumn().index();
                 var row = grid.focusedRow();
+                var selectedRowObj = null;
 
                 if (row && row.dataIndex() >= 0) {
-                    thingsGrid._setSelectedRowData(row.getRowObject());
+                    selectedRowObj = row.getRowObject();
+
+                    if(thingsGrid.preventMultiClickEvent && thingsGrid.selectedRowData && selectedRowObj.id && selectedRowObj.id === thingsGrid.selectedRowData.id) {
+                        return;
+                    }
+
+                    thingsGrid._setSelectedRowData(selectedRowObj);
                     thingsGrid.fire('things-grid-row-data-select', thingsGrid.selectedRowData);
                 }
 
                 if (thingsGrid.dataSet && colIndex >= 0) {
                     thingsGrid._setSelectedCellData(thingsGrid.dataSet.getValue(rowIndex, colIndex));
-
-                    thingsGrid.fire('things-grid-cell-data-select', {
-                        row: thingsGrid.selectedRowData,
-                        cell: cellData
-                    });
+                    thingsGrid.fire('things-grid-cell-data-select', { row: thingsGrid.selectedRowData, cell: cellData });
                 }
 
-                if (thingsGrid.enableDetailColumn && cellData.column._name == 'Detail' &&
-                    cellData.column._renderer && cellData.column._renderer.type == 'icon') {
-                    thingsGrid._setSelectedRowData(row.getRowObject());
+                if (thingsGrid.enableDetailColumn && 
+                    cellData.column._name == 'Detail' &&
+                    cellData.column._renderer && 
+                    cellData.column._renderer.type == 'icon' &&
+                    selectedRowObj) {
+                    thingsGrid._setSelectedRowData(selectedRowObj);
                     thingsGrid.fire('things-grid-detail-tap', thingsGrid.selectedRowData);
                 }
             }
@@ -855,9 +871,9 @@
 
         /**
          * Grid Cell Double Click 이벤트 핸들러
-         *
-         * @param {Object} grid
-         * @param {Object} index
+         ********
+         * @param {Object} grid dataludi grid
+         * @param {Object} index cell 선택 index
          */
         _gridCellDblClicked: function(grid, index) {
             var me = grid._container_;
@@ -967,6 +983,8 @@
 
         /**
          * date picker dialog 내부에서 실행되는 callback 함수
+         ********
+         * @param {Object} dataObj
          */
         _applySelectedDate: function(dataObj) {
             var grid = dataObj.ownerGrid;
@@ -981,6 +999,8 @@
 
         /**
          * image selector dialog 내부에서 실행되는 callback 함수
+         ********
+         * @param {Object} dataObj
          */
         _applySelectedImage: function(dataObj) {
             var grid = dataObj.ownerGrid;
@@ -995,6 +1015,8 @@
 
         /**
          * file selector dialog 내부에서 실행되는 callback 함수
+         ********
+         * @param {Object} dataObj
          */
         _applySelectedFile: function(dataObj) {
             var grid = dataObj.ownerGrid;
