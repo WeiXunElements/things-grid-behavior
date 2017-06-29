@@ -1,5 +1,5 @@
 # things-grid-behavior
-grid에 사용될 기능모듈들을 정의한 behavior set
+This is the behavior set that defines the functional modules to be used in the grid.
 
 Example
 
@@ -78,7 +78,7 @@ Example
       ],
 
       /**
-       * 툴바 관련 설정 변경시
+       * When changing toolbar-related settings
        *
        * @param {Array} buttons
        */
@@ -86,7 +86,7 @@ Example
         this.enableToolbar = buttons && buttons.length > 0;
       },
       /**
-       * Grid 구성이 실패한 후 핸들러
+       * Handler after a Grid Configuration Failure
        *
        * @param {Object} event things-grid-configure-failed
        */
@@ -101,8 +101,7 @@ Example
 ```
 ## Dependencies
 
-Element dependencies are managed via [Bower](http://bower.io/). You can
-install that via:
+Element dependencies are managed via [Bower](http://bower.io/). You can install that via:
 
     npm install -g bower
 
