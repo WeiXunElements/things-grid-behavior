@@ -92,7 +92,7 @@ Copyright © HatioLab Inc. All rights reserved.
 			if(grid && this.isButtonExist('clear-cache-btn')) {
 				var evt = this.fire('things-grid-clear-cache-configured', grid, { cancelable: true });
 				if(!evt.defaultPrevented) {
-					// button tap 이벤트 추가 
+					// button tap 이벤트 추가
 					this.listen(this.$['button-group'], 'clear-cache-btn-tap', 'clearCache');
 					this.fire('things-grid-clear-cache-configured', grid);
 				}
@@ -185,7 +185,7 @@ Copyright © HatioLab Inc. All rights reserved.
 			this._configureChangedData(changedDataList, 'created', 'c');
 			this._configureChangedData(changedDataList, 'updated', 'u');
 			this._configureChangedData(changedDataList, 'deleted', 'd');
-			this.writeData = changedDataList;
+			this.writeData = this._handleWriteData(changedDataList);
 			this.fire('things-grid-handle-built-writedata', this.writeData);
 		},
 
@@ -214,6 +214,35 @@ Copyright © HatioLab Inc. All rights reserved.
 					this.checkValidation(changedData);
 				}
 			}
+		},
+
+		/**
+		 * 변경된 데이터(writeData)에 대한 확장 필드 등에 대한 처리
+		 *
+		 * @param {Array} writeData
+		 */
+		_handleWriteData: function(writeData) {
+			if(!writeData || writeData.length == 0) {
+				return writeData;
+			}
+
+			// 1. 확장 필드들을 찾는다.
+			var extColumns = this.columns.filter(function(col) {
+				return col.userData && col.userData.extField === true;
+			});
+
+			// 2. 확장 필드가 있다면 extprops_로 처리
+			if(extColumns && extColumns.length > 0) {
+				writeData.forEach(function(data) {
+					data.extprops_ = {};
+					extColumns.forEach(function(extColumn) {
+						data.extprops_[extColumn.name] = data[extColumn.name];
+						delete data[extColumn.name];
+					});
+				});
+			}
+
+			return writeData;
 		},
 
 		/**

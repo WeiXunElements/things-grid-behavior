@@ -224,9 +224,9 @@ Copyright © HatioLab Inc. All rights reserved.
             },
 
             /**
-             * 삭제시 validation 체크 
+             * 삭제시 validation 체크
              * { fieldName : 'finished', operator : 'eq', fieldValue : true } or
-             * { fieldName : 'status', operator : 'in', fieldValue : 'canceled,deleted' } or 
+             * { fieldName : 'status', operator : 'in', fieldValue : 'canceled,deleted' } or
              * [{ fieldName : 'finished', operator : 'eq', fieldValue : true }, { fieldName : 'status', operator : 'in', fieldValue : 'canceled,deleted' }]
              */
             deleteRecordValidation: {
@@ -234,7 +234,7 @@ Copyright © HatioLab Inc. All rights reserved.
             },
 
             /**
-             * 연속 선택 이벤트를 막을지 허용할 지 여부 
+             * 연속 선택 이벤트를 막을지 허용할 지 여부
              */
             preventMultiClickEvent: {
                 type: Boolean,
@@ -242,7 +242,7 @@ Copyright © HatioLab Inc. All rights reserved.
             }
 
             /**
-             * 수정시 validation 체크 
+             * 수정시 validation 체크
              * { fieldName : 'name', operator : 'not-eq', fieldValue : 'running' }
              */
             /*updateRecordValidation: {
@@ -651,7 +651,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 if(column.editor && column.editor.type == 'list') {
                     column.editor.listItemDisplay = 'labelValue';
                     column.editor.listItemColumned = true;
-                    
+
                     if((!column.lookupValues || column.lookupValues.length == 0) && column.userData && column.userData.resourceName) {
                         this._addCodeData(column);
                     }
@@ -790,6 +790,19 @@ Copyright © HatioLab Inc. All rights reserved.
             var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
             if (!evt.defaultPrevented && this.data && this.dataSet) {
                 if(this.grid) this.grid.commit();
+
+                // 데이터에 extprops_가 있다면 extprops_ 오브젝트를 옆으로 확장한다.
+                if(this.data && this.data.length > 0) {
+                  this.data.forEach(function(record) {
+                    if(record.extprops_) {
+                      for(key in record.extprops_) {
+                        var val = record.extprops_[key];
+                        record[key] = val;
+                      }
+                    }
+                  });
+                }
+
                 this.dataSet.setRows(this.data);
                 this.fire('things-grid-data-changed', this.data);
             }
@@ -862,9 +875,9 @@ Copyright © HatioLab Inc. All rights reserved.
                     thingsGrid.fire('things-grid-cell-data-select', { row: thingsGrid.selectedRowData, cell: cellData });
                 }
 
-                if (thingsGrid.enableDetailColumn && 
+                if (thingsGrid.enableDetailColumn &&
                     cellData.column._name == 'Detail' &&
-                    cellData.column._renderer && 
+                    cellData.column._renderer &&
                     cellData.column._renderer.type == 'icon' &&
                     selectedRowObj) {
                     thingsGrid._setSelectedRowData(selectedRowObj);
@@ -948,7 +961,7 @@ Copyright © HatioLab Inc. All rights reserved.
                     var dataSet = grid.dataSource();
                     var row = grid.focusedRow();
                     var rowObj = row.getRowObject();
-                    
+
                     var matchColumn = me.columns.filter(function(col) {
                         return (column.name() == col.name);
                     });
