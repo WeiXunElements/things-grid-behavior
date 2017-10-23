@@ -185,7 +185,8 @@ Copyright © HatioLab Inc. All rights reserved.
                 value: {
                     'onDataCellClicked': '_gridCellClicked',
                     'onDataCellDblClicked': '_gridCellDblClicked',
-                    'onCellButtonClicked': '_gridCellButtonClicked'
+                    'onCellButtonClicked': '_gridCellButtonClicked',
+                    'onEditChanged': '_gridEditorChanged'
                 }
             },
 
@@ -295,6 +296,11 @@ Copyright © HatioLab Inc. All rights reserved.
              * @event things-grid-data-changed
              */
             /**
+             * 그리드 Cell editor 변경 후 발생하는 이벤트
+             *
+             * @event things-grid-editor-changed
+             */
+            /**
              * 그리드 상세 버튼이 클릭 되었을 경우 발생하는 이벤트
              *
              * @event things-grid-detail-tap
@@ -394,6 +400,8 @@ Copyright © HatioLab Inc. All rights reserved.
                     root: this.gridImageDir,
                     items: this.gridImageItems
                 });
+
+                this.grid.registerCellStyle('uneditable', { 'editable': false, 'background': '#26e3ad5f' });
 
                 this.grid.body().setCellDynamicStyles(this.gridCellStyles);
                 this.grid.footer().setVisible(this.showGridFooter);
@@ -844,6 +852,22 @@ Copyright © HatioLab Inc. All rights reserved.
         },
 
         /**
+         * Grid Cell Editor Changed 이벤트 핸들러
+         ********
+         * @param  {[type]} grid dataludi grid
+         * @param  {[type]} index 변경된 cell의 index
+         * @param  {[type]} value 변경된 cell의 현재 value
+         */
+        _gridEditorChanged: function(grid, index, value) {
+            var thingsGrid = grid._container_;
+            thingsGrid.fire('things-grid-editor-changed', {
+                grid: grid,
+                index: index,
+                value: value
+            });
+        },
+
+        /**
          * Grid Cell Click 이벤트 핸들러
          ********
          * @param {Object} grid dataludi grid
@@ -896,6 +920,14 @@ Copyright © HatioLab Inc. All rights reserved.
             var me = grid._container_;
             var column = index.column;
             grid.commit();
+
+            /**
+             * Cell style이 uneditable이면 return
+             */
+            var rowIdx = index.rowIndex;
+            var fieldName = column.fieldName();
+            var cellStyle = grid.getCellStyle(rowIdx, fieldName);
+            if(cellStyle ** cellStyle.id() == 'uneditable') return;
 
             var iconStyle = column.styles().iconIndex();
 
