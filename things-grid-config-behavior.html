@@ -927,7 +927,7 @@ Copyright © HatioLab Inc. All rights reserved.
             var rowIdx = index.rowIndex;
             var fieldName = column.fieldName();
             var cellStyle = grid.getCellStyle(rowIdx, fieldName);
-            if(cellStyle ** cellStyle.id() == 'uneditable') return;
+            if(cellStyle && cellStyle.id() == 'uneditable') return;
 
             var iconStyle = column.styles().iconIndex();
 
