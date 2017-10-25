@@ -925,9 +925,9 @@ Copyright © HatioLab Inc. All rights reserved.
              * Cell style이 uneditable이면 return
              */
             var rowIdx = index.rowIndex;
-            var fieldName = column.fieldName();
-            var cellStyle = grid.getCellStyle(rowIdx, fieldName);
-            if(cellStyle && cellStyle.id() == 'uneditable') return;
+            var fieldIdx = index.dataField();
+            var cellStyleId = grid.getCellStyleId(rowIdx, fieldIdx);
+            if(cellStyleId == 'uneditable') return;
 
             var iconStyle = column.styles().iconIndex();
 
