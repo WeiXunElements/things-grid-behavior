@@ -111,7 +111,8 @@ Copyright © HatioLab Inc. All rights reserved.
 			// Add Paginator Element
 			var paginator = document.createElement('things-paginator');
 			paginator.id = 'paginator';
-			paginator.limit = this.limit;
+			paginator.limit = (this.limits && this.limits.length > 0) ? this.limits[0] : this.limit ? this.limit : paginator.limit;
+			paginator.limits = (this.limits && this.limits.length > 0) ? this.limits : paginator.limits;
 			paginator.currentPage = this.currentPage;
 			paginator.totalCount = this.totalCount;
 			paginator.pageStartIdx = this.pageStartIdx;
