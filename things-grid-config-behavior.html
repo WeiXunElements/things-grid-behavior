@@ -837,17 +837,44 @@ Copyright © HatioLab Inc. All rights reserved.
          * @param {Object} index cell 선택 index
          */
         _gridCellButtonClicked: function(grid, index) {
+            grid.commit();
             var column = index.column;
             var styles = column.styles();
+            var rowIdx = index.rowIndex;
+            var rowObj = index.getRow().getRowObject();
+            var fieldName = column.dataFieldName();
+            var dataSet = grid.dataSource();            
 
             if(styles && styles.iconIndex() == 'resource-selector') {
-                var rowIdx = index.rowIndex;
-                var rowObj = index.getRow().getRowObject();
-                var fieldName = column.dataFieldName();
-                var dataSet = grid.dataSource();
                 rowObj[fieldName] = {};
                 dataSet.updateRow(rowIdx, rowObj);
                 grid.refreshView();
+            } else if (styles && styles.iconIndex() == 'popup-editor') {
+                grid.setFocusedCell();
+                var popupEditor = document.createElement('things-popup-editor');
+                var fieldValue = rowObj[fieldName];
+                
+                popupEditor.value = fieldValue;
+                popupEditor.editorMode = column.userData().editorMode;
+                popupEditor.title = column.header().text();
+                popupEditor.confirmCallback = function() {
+                    rowObj[fieldName] = popupEditor.value;
+                    dataSet.updateRow(rowIdx, rowObj);
+                };
+                if(popupEditor.is) {
+                    document.dispatchEvent(new CustomEvent('things-open-popup-view', {
+                        detail: {
+                            view: popupEditor,
+                            modal: true,
+                            openCallback: function() {
+                                popupEditor._openCallback(grid, index);
+                            },
+                            closeCallback: function() {
+                                popupEditor._closeCallback(grid, index);
+                            }
+                        }
+                    }))
+                }
             }
         },
 
