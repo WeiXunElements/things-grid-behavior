@@ -837,6 +837,8 @@ Copyright © HatioLab Inc. All rights reserved.
          * @param {Object} index cell 선택 index
          */
         _gridCellButtonClicked: function(grid, index) {
+            var thingsGrid = grid._container_;
+
             grid.commit();
             var column = index.column;
             var styles = column.styles();
@@ -862,8 +864,15 @@ Copyright © HatioLab Inc. All rights reserved.
                     dataSet.updateRow(rowIdx, rowObj);
                 };
                 if(popupEditor.is) {
-                    document.dispatchEvent(new CustomEvent('things-open-popup-view', {
-                        detail: {
+                    var eventDetail = {
+                        editor: popupEditor,
+                        grid: grid,
+                        index: index
+                    };
+                    var evt = thingsGrid.fire('things-grid-popup-editor-select', eventDetail, { cancelable: true });
+
+                    if(!evt.defaultPrevented) {
+                        thingsGrid.fire('things-open-popup-view', {
                             view: popupEditor,
                             modal: true,
                             openCallback: function() {
@@ -872,8 +881,8 @@ Copyright © HatioLab Inc. All rights reserved.
                             closeCallback: function() {
                                 popupEditor._closeCallback(grid, index);
                             }
-                        }
-                    }))
+                        });
+                    }
                 }
             }
         },
