@@ -855,7 +855,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 var fieldValue = rowObj[fieldName];
                 
                 popupEditor.value = fieldValue;
-                if(column.userData() && column.userData.editorMode) popupEditor.editorMode;
+                if(column.userData() && column.userData().editorMode) popupEditor.editorMode = column.userData().editorMode;
                 popupEditor.title = column.header().text();
                 popupEditor.confirmCallback = function() {
                     rowObj[fieldName] = popupEditor.value;
