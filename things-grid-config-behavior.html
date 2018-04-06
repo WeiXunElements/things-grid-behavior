@@ -625,24 +625,33 @@ Copyright © HatioLab Inc. All rights reserved.
          ********
          * @param {Object} column
          */
-        _addCodeData: function(column) {
-            var ajax = document.createElement('things-ajax');
-            ajax.resourceUrl = 'common_codes/show_by_name?name=' + column.userData.resourceName;
-            ajax.resourceAction = 'find';
-            column.lookupValues = [''];
-            column.lookupLabels = [''];
+         _addCodeData: function(column) {
+             var ajax = document.createElement('things-ajax');
 
-            ajax.addEventListener('things-ajax-response', function(event) {
-                var code = event.detail;
-                code.items.forEach(function(item) {
-                    column.lookupLabels.push(item.description);
-                    column.lookupValues.push(item.name);
-                });
-                this.grid.setColumns(this.columns);
-            }.bind(this));
+             if(column.userData.resourceType && column.userData.resourceType == 'entity') {
+               ajax.resourceUrl = 'entities/' + column.userData.resourceName + '/search_records_as_code?select=' + column.userData.selectFields;
+               ajax.resourceAction = 'index';
+             } else {
+               ajax.resourceUrl = 'common_codes/show_by_name?name=' + column.userData.resourceName;
+               ajax.resourceAction = 'find';
+             }
 
-            ajax.generateRequest();
-        },
+             column.lookupValues = [''];
+             column.lookupLabels = [''];
+
+             ajax.addEventListener('things-ajax-response', function(event) {
+                 var code = event.detail;
+                 var codeItems = (code && code.items) ? code.items : code;
+
+                 codeItems.forEach(function(item) {
+                     column.lookupLabels.push(item.description);
+                     column.lookupValues.push(item.name);
+                 });
+                 this.grid.setColumns(this.columns);
+             }.bind(this));
+
+             ajax.generateRequest();
+         },
 
         /**
          * Set Grid Column Views
@@ -652,10 +661,11 @@ Copyright © HatioLab Inc. All rights reserved.
         _setGridColumns: function(columns) {
             if(!columns || !this.grid) return;
 
+            var gridColumns = (typeof(columns) === 'string') ? JSONfn.parse(columns) : columns.slice();
             var multilineFlag = false;
 
             // list type의 그리드 컬럼에 라벨 벨류를 함께 표시하도록 설정
-            columns.forEach(function(column) {
+            gridColumns.forEach(function(column) {
                 if(column.editor && column.editor.type == 'list') {
                     column.editor.listItemDisplay = 'labelValue';
                     column.editor.listItemColumned = true;
@@ -674,8 +684,6 @@ Copyright © HatioLab Inc. All rights reserved.
             if(multilineFlag) {
                 if(this.rowHeight <= 50) this.rowHeight = 100;
             }
-
-            var gridColumns = (typeof(columns) === 'string') ? JSONfn.parse(columns) : columns.slice();
 
             if (this.enableDetailColumn) {
                 gridColumns.unshift({
@@ -845,7 +853,7 @@ Copyright © HatioLab Inc. All rights reserved.
             var rowIdx = index.rowIndex;
             var rowObj = index.getRow().getRowObject();
             var fieldName = column.dataFieldName();
-            var dataSet = grid.dataSource();            
+            var dataSet = grid.dataSource();
 
             if(styles && styles.iconIndex() == 'resource-selector') {
                 rowObj[fieldName] = {};
@@ -855,7 +863,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 grid.setFocusedCell();
                 var popupEditor = document.createElement('things-popup-editor');
                 var fieldValue = rowObj[fieldName];
-                
+
                 popupEditor.value = fieldValue;
                 if(column.userData() && column.userData().editorMode) popupEditor.editorMode = column.userData().editorMode;
                 popupEditor.title = column.header().text();
