@@ -103,7 +103,7 @@ Copyright © HatioLab Inc. All rights reserved.
 				var maxRank = Math.max(...rankList);
 				return maxRank + fieldModel.increment;
 
-			} else if (fieldModel.defaultValue) {
+			} else if (typeof fieldModel.defaultValue!='undefined' && fieldModel.defaultValue!=null) {
 				var defVal = fieldModel.defaultValue;
 
 				if (typeof defVal == 'string' && defVal.indexOf('$today') >= 0) {
