@@ -377,7 +377,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 }
 
                 if (this.data && this.data.length > 0) {
-                    this.dataSet.setRows(this.data, 0);
+                    this.dataSet.setRows(this.data, 3);
                 }
 
                 if (this.grid && this.events) {
@@ -652,7 +652,7 @@ Copyright © HatioLab Inc. All rights reserved.
             var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
 
             if (!evt.defaultPrevented && this.data && this.data.length > 0 && this.dataSet) {
-                this.dataSet.setRows(this.data, 0);
+                this.dataSet.setRows(this.data, 3);
                 this.fire('things-grid-data-changed', this.data);
             }
         },
