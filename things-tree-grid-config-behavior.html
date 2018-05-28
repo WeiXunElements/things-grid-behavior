@@ -209,6 +209,15 @@ Copyright © HatioLab Inc. All rights reserved.
                 type: Object,
                 notify: true,
                 readOnly: true
+            },
+
+            /**
+             * 트리를 구성하는 Path 필드가 Array에 있는 칼럼  위치
+             * @type {Number}
+             */
+            treePathField: {
+                type: Number,
+                value: 0
             }
 
             /**
@@ -377,7 +386,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 }
 
                 if (this.data && this.data.length > 0) {
-                    this.dataSet.setRows(this.data, 3);
+                    this.dataSet.setRows(this.data, this.treePathField);
                 }
 
                 if (this.grid && this.events) {
@@ -652,7 +661,7 @@ Copyright © HatioLab Inc. All rights reserved.
             var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
 
             if (!evt.defaultPrevented && this.data && this.data.length > 0 && this.dataSet) {
-                this.dataSet.setRows(this.data, 3);
+                this.dataSet.setRows(this.data, this.treePathField);
                 this.fire('things-grid-data-changed', this.data);
             }
         },

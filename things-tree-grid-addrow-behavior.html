@@ -72,13 +72,11 @@ Copyright © HatioLab Inc. All rights reserved.
 				cancelable: true
 			});
 			if (!evt.defaultPrevented) {
-                var grid = document.querySelector('#grid').grid.focusedIndex().getRow();
+                var focusedRow = this.grid.focusedRow();
                 if(grid==null){
-                    this.dataSet.addRow(null, this.newRowData());
+                    this.dataSet.insertRow(null,row.index(), this.newRowData());
                 }else{
-	                var selectRowPath = grid._dataRow._values[3];
-                    var parents = selectRowPath.split(".");
-                    this.dataSet.addRow(Number(parents[parents.length-2]), this.newRowData());
+                    this.dataSet.insertRow(focusedRow.parent(),focusedRow.index(), this.newRowData())
                 }
 			}
 		},
