@@ -72,12 +72,20 @@ Copyright © HatioLab Inc. All rights reserved.
 				cancelable: true
 			});
 			if (!evt.defaultPrevented) {
-                var focusedRow = this.grid.focusedRow();
-                if(grid==null){
-                    this.dataSet.insertRow(null,row.index(), this.newRowData());
-                }else{
-                    this.dataSet.insertRow(focusedRow.parent(),focusedRow.index(), this.newRowData())
-                }
+				var focusedRow = this.grid.focusedRow();
+				if(focusedRow && focusedRow.parent()){
+					var focusedParent = focusedRow.parent();
+	                var focusedDataParentRow = focusedParent.dataRow();
+	                var newDataRow = this.dataSet.addRow(focusedDataParentRow,this.newRowData());
+
+	                if (newDataRow) {
+	                    focusedRow.setExpanded(true);
+	                    var newRow = this.grid.getRowOfDataRow(newDataRow);
+	                    this.grid.setFocusedRow(newRow);
+	                }
+				}else{
+					this.dataSet.addRow(null,this.newRowData());
+				}
 			}
 		},
 
