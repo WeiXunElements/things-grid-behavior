@@ -684,9 +684,12 @@ Copyright © HatioLab Inc. All rights reserved.
                 if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
                     multilineFlag = true;
                 }
-                var excludeEditors = ['image-selector','resource-selector','file-selector','image-renderer'];
+
                 if(this.autoFilter){
-                    if(!column.styles || (column.styles && excludeEditors.indexOf(column.styles.iconIndex))<0){
+                    var filteredArray = this.model.filter(function(field){
+                        return field.fieldName == column.fieldName && field.dataType=='object';
+                    });
+                    if(filteredArray && filteredArray.length==0){
                         column.autoFilter = {
                             'active'     : true,
                             'ignoreCase' : true,
