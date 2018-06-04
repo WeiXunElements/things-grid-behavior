@@ -1,0 +1,138 @@
+<!--
+@license
+Copyright © HatioLab Inc. All rights reserved.
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<script>
+	window.Things = window.Things || {};
+
+	/**
+	 * 그리드에 행을 추가하는 기능을 제공하는 그리드 Behavior
+	 *
+	 * @polymerBehavior Things.TreeGridAddrowBehavior
+	 */
+	Things.TreeGridAddrowBehavior = {
+
+		properties: {
+			/**
+			 * 그리드 Add Row Behavior 구성 전 발생하는 이벤트
+			 *
+			 * @event things-tree-grid-addrow-configure
+			 */
+			/**
+			 * 그리드 Add Row Behavior 구성이 완료된 후 발생하는 이벤트
+			 *
+			 * @event things-tree-grid-addrow-configured
+			 */
+			/**
+			 * 그리드 행 추가 전 발생하는 이벤트.
+			 * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+			 *
+			 * @event things-tree-grid-handle-addrow
+			 */
+		},
+
+		listeners: {
+			'things-grid-configured': '_initializeAddrowBehavior',
+		},
+
+		/**
+		 * 그리드 구성이 완료된 후 GridAddRowBehavior를 initialize 한다.
+		 *
+		 * @param {Object} e things-grid-configured 이벤트
+		 */
+		_initializeAddrowBehavior: function(e) {
+			var grid = e.detail;
+
+			if (grid && this.isButtonExist('add-btn')) {
+				var evt = this.fire('things-tree-grid-addrow-configure', grid, {
+					cancelable: true
+				});
+				if (!evt.defaultPrevented) {
+					grid.editOptions().setInsertable(true);
+					grid.editOptions().setAppendable(true);
+
+					// button tap 이벤트 추가
+					this.listen(this.$['button-group'], 'add-btn-tap', 'addGridRow');
+					this.fire('things-tree-grid-addrow-configured', grid);
+				}
+			}
+		},
+
+		/**
+		 * Add Grid Row
+		 *
+		 * @param {Object} e button-tap 이벤트
+		 */
+		addGridRow: function(e) {
+			this.grid.commit();
+
+			var evt = this.fire('things-tree-grid-handle-addrow', e.detail, {
+				cancelable: true
+			});
+			if (!evt.defaultPrevented) {
+				var focusedRow = this.grid.focusedRow();
+				if(focusedRow && focusedRow.parent()){
+					var focusedParent = focusedRow.parent();
+	                var focusedDataParentRow = focusedParent.dataRow();
+	                var newDataRow = this.dataSet.addRow(focusedDataParentRow,this.newRowData());
+
+	                if (newDataRow) {
+	                    focusedRow.setExpanded(true);
+	                    var newRow = this.grid.getRowOfDataRow(newDataRow);
+	                    this.grid.setFocusedRow(newRow);
+	                }
+				}else{
+					this.dataSet.addRow(null,this.newRowData());
+				}
+			}
+		},
+
+		/**
+		 * Create Empty Row Data
+		 */
+		newRowData: function() {
+			var newData = {},
+				me = this;
+			this.model.forEach(function(fieldModel) {
+				newData[fieldModel.fieldName] = me._findDefaultValue(fieldModel);
+			});
+			return newData;
+		},
+
+		/**
+		 * fieldModel에 따라 기본값을 추출한다.
+		 */
+		_findDefaultValue: function(fieldModel) {
+			if (fieldModel.rank && fieldModel.rank == true) {
+				var rowCount = this.dataSet.rowCount();
+				if (!rowCount || rowCount == 0) return fieldModel.increment;
+
+				var gridItems = this.dataSet.getRowObjects(0, rowCount);
+				var rankList = gridItems.map(function(item) {
+					return item[fieldModel.fieldName];
+				});
+				var maxRank = Math.max(...rankList);
+				return maxRank + fieldModel.increment;
+
+			} else if (fieldModel.defaultValue) {
+				var defVal = fieldModel.defaultValue;
+
+				if (typeof defVal == 'string' && defVal.indexOf('$today') >= 0) {
+					defVal = defVal.replace('$today', 'var dt = new Date(); dt.setDate(dt.getDate()') + ')';
+					var time = eval(defVal);
+					var date = new Date(time);
+					return fieldModel.type ? date : moment(date).format('YYYY-MM-DD');
+
+				} else {
+					return defVal;
+				}
+
+			} else {
+				return null;
+			}
+		}
+	};
+
+</script>

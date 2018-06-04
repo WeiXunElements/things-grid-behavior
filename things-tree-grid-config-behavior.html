@@ -95,6 +95,13 @@ Copyright © HatioLab Inc. All rights reserved.
                 type: Number,
                 value: -1
             },
+            /**
+             * Grid Row Height
+             */
+            rowHeight: {
+                type: Number,
+                value: 30
+            },
 
             /**
              * 그리드 이미지 루트
@@ -173,10 +180,11 @@ Copyright © HatioLab Inc. All rights reserved.
                 type: Object,
                 value: {
                     'onDataCellClicked': '_gridCellClicked',
-                    'onDataCellDblClicked': '_gridCellDblClicked'
+                    'onDataCellDblClicked': '_gridCellDblClicked',
+                    'onCellButtonClicked': '_gridCellButtonClicked',
+                    'onEditChanged': '_gridEditorChanged'
                 }
             },
-
             /**
              * 상세보기 버튼을 활성화할 지 여부
              */
@@ -209,7 +217,15 @@ Copyright © HatioLab Inc. All rights reserved.
                 type: Object,
                 notify: true,
                 readOnly: true
-            }
+            },
+            /**
+             * 트리를 구성하는 Path 필드이름
+             * @type {String}
+             */
+            treePathFieldName: {
+                type: String,
+                value: 'path'
+            },            
 
             /**
              * 그리드 구성 전 발생하는 이벤트
@@ -288,7 +304,7 @@ Copyright © HatioLab Inc. All rights reserved.
         ],
 
         /**
-         * Life Cycle - Created
+         * Life Cycle - ready
          */
         ready: function() {
             this.gridContainerId = 'a' + this.generateGuid();
@@ -356,6 +372,7 @@ Copyright © HatioLab Inc. All rights reserved.
                     root: this.gridImageDir,
                     items: this.gridImageItems
                 });
+                this.grid.registerCellStyle('uneditable', { 'editable': false });
 
                 this.grid.body().setCellDynamicStyles(this.gridCellStyles);
                 this.grid.footer().setVisible(this.showGridFooter);
@@ -376,14 +393,13 @@ Copyright © HatioLab Inc. All rights reserved.
                     this._setGridColumns(this.columns);
                 }
 
-                if (this.data && this.data.length > 0) {
-                    this.dataSet.setRows(this.data, 0);
+                if (this.data) {
+                    var resultArray = this.convertToArray(this.data);
+                    this.dataSet.setRows(resultArray, 0,false,true);
                 }
 
                 if (this.grid && this.events) {
-                    var evt = this.fire('things-grid-event-configure', this.grid, {
-                        cancelable: true
-                    });
+                    var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
                     if (!evt.defaultPrevented) {
                         for (var eventName in this.events) {
                             this.grid[eventName] = this[this.events[eventName]];
@@ -392,6 +408,50 @@ Copyright © HatioLab Inc. All rights reserved.
                         this.fire('things-grid-event-configured', this.grid);
                     }
                 }
+                // 그리드 Configuration
+                // 1. Undo & redo
+                this.dataSet.setUndoable(true);
+                this.grid.setUndoable(true);
+
+                // 2. Auto Fill
+                this.grid.setAutoFill(true);
+
+                // 3. Check Draggable
+                this.grid.checkBar().setDraggable(true);
+
+                // 4. Row Hover Mask & Mask Color
+                this.grid.displayOptions().rowHoverMask().setVisible(true);
+
+                // 5. Empty Data, Empty Grid message.
+                this.grid.displayOptions().setEmptyDataMessage(Things.DataGlobal.t('text.emptyDataMessage'));
+                this.grid.displayOptions().setEmptyGridMessage(Things.DataGlobal.t('text.emptyGridMessage'));
+
+                // 6. Row Height && Fixed columns
+                this.grid.displayOptions().setFixedColumnMovable(true);
+                this.grid.displayOptions().setFixedColumnResizable(true);
+
+                var multilineFlag = false;
+                this.columns.forEach(function(column) {
+                    if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
+                        multilineFlag = true;
+                    }
+                });
+
+                // ImageRenderer가 있다면 Row Height를 100으로 확장
+                if(multilineFlag) {
+                    if(this.rowHeight <= 50) this.rowHeight = 100;
+                }
+
+                this.grid.displayOptions().setRowHeight(this.rowHeight);
+
+
+                // 7. Styles
+                this.grid.loadStyles({
+                  body: {
+                    rowHover: { background: '#26e3ad5f' },
+                    fixedCell: { background: '', borderRight: '', borderBottom: ''}
+                  }
+                });
 
                 this.resizeGrid();
                 this.fire('things-grid-configured', this.grid);
@@ -439,8 +499,24 @@ Copyright © HatioLab Inc. All rights reserved.
         },
 
         /**
+         * Reset data
+         */
+        resetData: function() {
+            this.data = [];
+        },
+
+        /**
+         * 그리드 데이터를 리프레쉬
+         *******
+         * @param {Object} data
+         */
+        refreshData: function(data) {
+            this.data = data;
+        },
+
+        /**
          * 버튼이 존재하는지 여부 체크
-         *
+         *******
          * @param {String} buttonId
          */
         isButtonExist: function(buttonId) {
@@ -475,20 +551,18 @@ Copyright © HatioLab Inc. All rights reserved.
 
         /**
          * Configurations changed
-         *
+         ********
          * @param {Object} model
          * @param {Object} columns
          */
         _configurationsChanged: function(model, columns) {
             if (model && columns && !this.grid) {
-                var evt = this.fire('things-grid-configure', {
+                var evtDetail = {
                     config: this.config,
                     model: model,
                     columns: columns
-                }, {
-                    cancelable: true
-                });
-
+                };
+                var evt = this.fire('things-grid-configure', evtDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
                     this.initializeGrid();
                 }
@@ -497,7 +571,7 @@ Copyright © HatioLab Inc. All rights reserved.
 
         /**
          * Set Grid Model Fields
-         *
+         ********
          * @param {Array} / {String} gridModel
          */
         _setGridModel: function(gridModel) {
@@ -516,14 +590,69 @@ Copyright © HatioLab Inc. All rights reserved.
         },
 
         /**
+         * Code Data
+         ********
+         * @param {Object} column
+         */
+         _addCodeData: function(column) {
+             var ajax = document.createElement('things-ajax');
+
+             if(column.userData.resourceType && column.userData.resourceType == 'entity') {
+               ajax.resourceUrl = 'entities/' + column.userData.resourceName + '/search_records_as_code?select=' + column.userData.selectFields;
+               ajax.resourceAction = 'index';
+             } else {
+               ajax.resourceUrl = 'common_codes/show_by_name?name=' + column.userData.resourceName;
+               ajax.resourceAction = 'find';
+             }
+
+             column.lookupValues = [''];
+             column.lookupLabels = [''];
+
+             ajax.addEventListener('things-ajax-response', function(event) {
+                 var code = event.detail;
+                 var codeItems = (code && code.items) ? code.items : code;
+
+                 codeItems.forEach(function(item) {
+                     column.lookupLabels.push(item.description);
+                     column.lookupValues.push(item.name);
+                 });
+                 this.grid.setColumns(this.columns);
+             }.bind(this));
+
+             ajax.generateRequest();
+         },
+
+        /**
          * Set Grid Column Views
-         *
+         ********
          * @param {Array} / {String} columns
          */
         _setGridColumns: function(columns) {
-            if (!columns || !this.grid) return;
+            if(!columns || !this.grid) return;
 
-            var gridColumns = (typeof(columns) === 'string') ? JSON.parse(columns) : columns.slice();
+            var gridColumns = (typeof(columns) === 'string') ? JSONfn.parse(columns) : columns.slice();
+            var multilineFlag = false;
+
+            // list type의 그리드 컬럼에 라벨 벨류를 함께 표시하도록 설정
+            gridColumns.forEach(function(column) {
+                if(column.editor && column.editor.type == 'list') {
+                    column.editor.listItemDisplay = 'labelValue';
+                    column.editor.listItemColumned = true;
+
+                    if((!column.lookupValues || column.lookupValues.length == 0) && column.userData && column.userData.resourceName) {
+                        this._addCodeData(column);
+                    }
+                }
+
+                if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
+                    multilineFlag = true;
+                }
+            }.bind(this));
+
+            // ImageRenderer가 있다면 Row Height를 60으로 확장
+            if(multilineFlag) {
+                if(this.rowHeight <= 50) this.rowHeight = 100;
+            }
 
             if (this.enableDetailColumn) {
                 gridColumns.unshift({
@@ -532,7 +661,7 @@ Copyright © HatioLab Inc. All rights reserved.
                     width: 30,
                     imageList: 'images',
                     header: {
-                        text: ' '
+                        text: ''
                     },
                     renderer: {
                         type: 'icon'
@@ -551,7 +680,7 @@ Copyright © HatioLab Inc. All rights reserved.
 
         /**
          * Set grid initial config information
-         *
+         ********
          * @param {Object} config
          */
         _setGridConfig: function(config) {
@@ -560,9 +689,7 @@ Copyright © HatioLab Inc. All rights reserved.
             var gridConfig = (typeof(config) === 'string') ? JSON.parse(config) : config;
 
             if (!gridConfig) {
-                this.grid.setEditOptions({
-                    readOnly: true
-                });
+                this.grid.setEditOptions({ readOnly: true });
 
             } else {
                 var grid = this.grid;
@@ -604,7 +731,6 @@ Copyright © HatioLab Inc. All rights reserved.
                             grid.setEffectOptions(gridConfig[confKey]);
                             break;
 
-
                         case 'summaryMode':
                             var SummaryMode = DataLudi.SummaryMode[gridConfig[confKey].toUpperCase()];
                             grid.setSummaryMode(SummaryMode);
@@ -633,13 +759,11 @@ Copyright © HatioLab Inc. All rights reserved.
                         case 'options':
                             grid.setOptions(gridConfig[confKey]);
                             break;
-
-                        default:
-                            break;
                     }
                 });
             }
         },
+
 
         /**********************************************************************************
          *                            Grid Event
@@ -650,21 +774,46 @@ Copyright © HatioLab Inc. All rights reserved.
          */
         _gridDataChanged: function() {
             var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
+            if (!evt.defaultPrevented && this.data && this.dataSet) {
+                if(this.grid) this.grid.commit();
 
-            if (!evt.defaultPrevented && this.data && this.data.length > 0 && this.dataSet) {
-                this.dataSet.setRows(this.data, 0);
+                // 데이터에 extprops_가 있다면 extprops_ 오브젝트를 옆으로 확장한다.
+                if(this.data && this.data.length > 0 && this.data.forEach) {
+                  this.data.forEach(function(record) {
+                    if(record.extprops_) {
+                      for(key in record.extprops_) {
+                        var val = record.extprops_[key];
+                        record[key] = val;
+                      }
+                    }
+                  });
+                }
+
+                var resultArray = this.convertToArray(this.data);
+                this.dataSet.setRows(resultArray, 0,false,true);
                 this.fire('things-grid-data-changed', this.data);
             }
         },
+        convertToArray : function (objArray) {
+            var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+            var resultArray = [];
+            for (var i = 0; i < array.length; i++) {
+                var valueArray = [array[i][this.treePathFieldName]];
+                this.model.forEach(function(field){
+                    valueArray.push(array[i][field.fieldName]);
+                })
+                resultArray.push(valueArray);
+            }
 
+            return resultArray;
+        },
         /**
          * 화면 리사이즈 시 이벤트 핸들러
-         *
-         * @param {Object} iron-resize 이벤트
+         ********
+         * @param {Object} e iron-resize 이벤트
          */
         _gridResizeHandler: function(e) {
             var evt = this.fire('things-grid-resize', this.grid, { cancelable: true });
-
             if (!evt.defaultPrevented) {
                 if (this.grid == null) {
                     this.initializeGrid();
@@ -673,10 +822,83 @@ Copyright © HatioLab Inc. All rights reserved.
         },
 
         /**
+         * Grid Cell Button Click 이벤트 핸들러
+         ********
+         * @param {Object} grid dataludi grid
+         * @param {Object} index cell 선택 index
+         */
+        _gridCellButtonClicked: function(grid, index) {
+            var thingsGrid = grid._container_;
+
+            grid.commit();
+            var column = index.column;
+            var styles = column.styles();
+            var rowIdx = index.rowIndex;
+            var rowObj = index.getRow().getRowObject();
+            var fieldName = column.dataFieldName();
+            var dataSet = grid.dataSource();
+
+            if(styles && styles.iconIndex() == 'resource-selector') {
+                rowObj[fieldName] = {};
+                dataSet.updateRow(index.getRow().dataRow(), rowObj);
+                grid.refreshView();
+            } else if (styles && styles.iconIndex() == 'popup-editor') {
+                grid.setFocusedCell();
+                var popupEditor = document.createElement('things-popup-editor');
+                var fieldValue = rowObj[fieldName];
+
+                popupEditor.value = fieldValue;
+                if(column.userData() && column.userData().editorMode) popupEditor.editorMode = column.userData().editorMode;
+                popupEditor.title = column.header().text();
+                popupEditor.confirmCallback = function() {
+                    rowObj[fieldName] = popupEditor.value;
+                    dataSet.updateRow(index.getRow().dataRow(), rowObj);
+                };
+                if(popupEditor.is) {
+                    var eventDetail = {
+                        editor: popupEditor,
+                        grid: grid,
+                        index: index
+                    };
+                    var evt = thingsGrid.fire('things-grid-popup-editor-select', eventDetail, { cancelable: true });
+
+                    if(!evt.defaultPrevented) {
+                        thingsGrid.fire('things-open-popup-view', {
+                            view: popupEditor,
+                            modal: true,
+                            openCallback: function() {
+                                popupEditor._openCallback(grid, index);
+                            },
+                            closeCallback: function() {
+                                popupEditor._closeCallback(grid, index);
+                            }
+                        });
+                    }
+                }
+            }
+        },
+
+        /**
+         * Grid Cell Editor Changed 이벤트 핸들러
+         ********
+         * @param  {[type]} grid dataludi grid
+         * @param  {[type]} index 변경된 cell의 index
+         * @param  {[type]} value 변경된 cell의 현재 value
+         */
+        _gridEditorChanged: function(grid, index, value) {
+            var thingsGrid = grid._container_;
+            thingsGrid.fire('things-grid-editor-changed', {
+                grid: grid,
+                index: index,
+                value: value
+            });
+        },
+
+        /**
          * Grid Cell Click 이벤트 핸들러
-         *
-         * @param {Object} grid
-         * @param {Object} cellData
+         ********
+         * @param {Object} grid dataludi grid
+         * @param {Object} cellData 선택된 celldata
          */
         _gridCellClicked: function(grid, cellData) {
             if (!grid._container_ || !cellData) return;
@@ -686,31 +908,30 @@ Copyright © HatioLab Inc. All rights reserved.
                 var rowIndex = cellData.getDataIndex(grid);
                 var colIndex = grid.focusedColumn().index();
                 var row = grid.focusedRow();
+                var selectedRowObj = null;
 
                 if (row && row.dataIndex() >= 0) {
-                    thingsGrid._setSelectedRowData(row.getRowObject());
+                    selectedRowObj = row.getRowObject();
+
+                    if(thingsGrid.preventMultiClickEvent && thingsGrid.selectedRowData && selectedRowObj.id && selectedRowObj.id === thingsGrid.selectedRowData.id) {
+                        return;
+                    }
+
+                    thingsGrid._setSelectedRowData(selectedRowObj);
                     thingsGrid.fire('things-grid-row-data-select', thingsGrid.selectedRowData);
                 }
 
                 if (thingsGrid.dataSet && colIndex >= 0) {
                     thingsGrid._setSelectedCellData(thingsGrid.dataSet.getValue(rowIndex, colIndex));
-
-                    if(cellData.column._renderer &&cellData.column._renderer.type == 'image') {
-                        thingsGrid.fire('things-grid-cell-image-select', {
-                            row: thingsGrid.selectedRowData,
-                            cell: cellData
-                        });
-                    } else {
-                        thingsGrid.fire('things-grid-cell-data-select', {
-                            row: thingsGrid.selectedRowData,
-                            cell: cellData
-                        });
-                    }
+                    thingsGrid.fire('things-grid-cell-data-select', { row: thingsGrid.selectedRowData, cell: cellData });
                 }
 
-                if (thingsGrid.enableDetailColumn && cellData.column._name == 'Detail' &&
-                    cellData.column._renderer && cellData.column._renderer.type == 'icon') {
-                    thingsGrid._setSelectedRowData(row.getRowObject());
+                if (thingsGrid.enableDetailColumn &&
+                    cellData.column._name == 'Detail' &&
+                    cellData.column._renderer &&
+                    cellData.column._renderer.type == 'icon' &&
+                    selectedRowObj) {
+                    thingsGrid._setSelectedRowData(selectedRowObj);
                     thingsGrid.fire('things-grid-detail-tap', thingsGrid.selectedRowData);
                 }
             }
@@ -718,14 +939,22 @@ Copyright © HatioLab Inc. All rights reserved.
 
         /**
          * Grid Cell Double Click 이벤트 핸들러
-         *
-         * @param {Object} grid
-         * @param {Object} index
+         ********
+         * @param {Object} grid dataludi grid
+         * @param {Object} index cell 선택 index
          */
         _gridCellDblClicked: function(grid, index) {
             var me = grid._container_;
             var column = index.column;
             grid.commit();
+
+            /**
+             * Cell style이 uneditable이면 return
+             */
+            var rowIdx = index.rowIndex;
+            var fieldIdx = index.dataField();
+            var cellStyleId = grid.getCellStyleId(rowIdx, fieldIdx);
+            if(cellStyleId == 'uneditable') return;
 
             var iconStyle = column.styles().iconIndex();
 
@@ -739,7 +968,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 };
                 var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
-                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
+                    me.openResourceSelectorByGrid(grid, index.getRow().dataRow(), eventDetail.userData, true);
                 }
 
             } else if (iconStyle == 'date-picker') {
@@ -752,10 +981,16 @@ Copyright © HatioLab Inc. All rights reserved.
                         owner: me,
                         ownerGrid: grid,
                         ownerGridObj: rowObj,
-                        ownerGridIdx: index.rowIndex,
+                        ownerGridIdx: index.getRow().dataRow(),
                         ownerGridColumn: column.name(),
                         date: rowObj[column.name()]
                     };
+
+                    if(column.userData()) {
+                        var usrData = column.userData();
+                        if(usrData.minDate) dataObj.minDate = usrData.minDate;
+                        if(usrData.maxDate) dataObj.maxDate = usrData.maxDate;
+                    }
 
                     me.fire('things-date-picker-toggle', { dataObj : dataObj, callback : me._applySelectedDate });
                 }
@@ -770,14 +1005,40 @@ Copyright © HatioLab Inc. All rights reserved.
                         owner: me,
                         ownerGrid: grid,
                         ownerGridObj: rowObj,
-                        ownerGridIdx: index.rowIndex,
+                        ownerGridIdx: index.getRow().dataRow(),
                         ownerGridColumn: column.name(),
-                        displayField: 'id'
+                        displayField: 'id',
+                        selectedImageId: rowObj[column.name()]
                     };
 
                     me.fire('things-image-selector-toggle', { dataObj : dataObj, callback : me._applySelectedImage });
                 }
 
+            } else if (iconStyle == 'file-selector') {
+                var evt = me.fire('things-grid-file-selector-edit', eventDetail, { cancelable: true});
+                if(!evt.defaultPrevented) {
+                    var dataSet = grid.dataSource();
+                    var row = grid.focusedRow();
+                    var rowObj = row.getRowObject();
+
+                    var matchColumn = me.columns.filter(function(col) {
+                        return (column.name() == col.name);
+                    });
+
+                    var defaultStorage = matchColumn ? matchColumn[0].userData.defaultStorage : null;
+
+                    var dataObj = {
+                        owner: me,
+                        ownerGrid: grid,
+                        ownerGridObj: rowObj,
+                        ownerGridIdx: index.getRow().dataRow(),
+                        ownerGridColumn: column.name(),
+                        selectedImageId: rowObj[column.name()],
+                        defaultStorage: defaultStorage
+                    };
+
+                    me.fire('things-file-selector-toggle', { dataObj : dataObj, callback: me._applySelectedFile });
+                }
             } else if (iconStyle == 'resource-format-selector') {
                 var matchColumn = me.columns.filter(function(col) {
                     return (column.name() == col.name);
@@ -797,7 +1058,9 @@ Copyright © HatioLab Inc. All rights reserved.
         },
 
         /**
-         * date picker dilog 내부에서 실행되는 callback 함수
+         * date picker dialog 내부에서 실행되는 callback 함수
+         ********
+         * @param {Object} dataObj
          */
         _applySelectedDate: function(dataObj) {
             var grid = dataObj.ownerGrid;
@@ -812,6 +1075,8 @@ Copyright © HatioLab Inc. All rights reserved.
 
         /**
          * image selector dialog 내부에서 실행되는 callback 함수
+         ********
+         * @param {Object} dataObj
          */
         _applySelectedImage: function(dataObj) {
             var grid = dataObj.ownerGrid;
@@ -822,7 +1087,24 @@ Copyright © HatioLab Inc. All rights reserved.
             rowObj[dataObj.ownerGridColumn] = dataObj.value;
             dataSet.updateRow(rowIdx, rowObj);
             grid.refreshView();
-        }        
+        },
+
+        /**
+         * file selector dialog 내부에서 실행되는 callback 함수
+         ********
+         * @param {Object} dataObj
+         */
+        _applySelectedFile: function(dataObj) {
+            var grid = dataObj.ownerGrid;
+            var rowObj = dataObj.ownerGridObj;
+            var rowIdx = dataObj.ownerGridIdx;
+            var dataSet = grid.dataSource();
+
+            rowObj['attachment'] = { id : dataObj.value, name : dataObj.displayValue };
+            dataSet.updateRow(rowIdx, rowObj);
+            grid.refreshView();
+
+        }       
     };
 
     Things.TreeGridConfigBehavior = [
