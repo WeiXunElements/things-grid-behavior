@@ -467,6 +467,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 this.grid.displayOptions().setFixedColumnResizable(true);
                 // 7. set edit option to auto commit
                 // this.grid.editOptions().setAutoCommit(true);
+                this.grid.editOptions().setCheckReadOnlyWhenPaste(true);
 
                 var multilineFlag = false;
                 this.columns.forEach(function(column) {

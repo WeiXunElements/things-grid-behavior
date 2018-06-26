@@ -216,7 +216,7 @@ Copyright © HatioLab Inc. All rights reserved.
 			}
 		},
 
-		/**
+/**
 		 * 변경된 데이터(writeData)에 대한 확장 필드 등에 대한 처리
 		 *
 		 * @param {Array} writeData
@@ -230,6 +230,9 @@ Copyright © HatioLab Inc. All rights reserved.
 			var extColumns = this.columns.filter(function(col) {
 				return col.userData && col.userData.extField === true;
 			});
+			var ignoreSaveColumns = this.columns.filter(function(col) {
+				return col.ignoreOnSave === true || col.readOnly===true;
+			});
 
 			// 2. 확장 필드가 있다면 extprops_로 처리
 			if(extColumns && extColumns.length > 0) {
@@ -240,7 +243,16 @@ Copyright © HatioLab Inc. All rights reserved.
 						delete data[extColumn.name];
 					});
 				});
+			};
+
+			if(ignoreSaveColumns && ignoreSaveColumns.length>0){
+				writeData.forEach(function(data) {
+					ignoreSaveColumns.forEach(function(ignoreField) {
+						delete data[ignoreField.name];
+					})
+				})
 			}
+
 
 			return writeData;
 		},
