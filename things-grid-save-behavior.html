@@ -120,15 +120,16 @@ Copyright © HatioLab Inc. All rights reserved.
 					cancelable: true
 				});
 				if (!evt.defaultPrevented) {
-					if (!this.writeData || this.writeData.length == 0) {
-						this.openInfoMsg({
-							title: Things.DataGlobal.t('title.info'),
-							text: Things.DataGlobal.t('text.NOTHING_CHANGED'),
-							type: 'info'
-						});
-					} else {
+					//没有数据也发送保存Ajax，用于刷新数据
+					// if (!this.writeData || this.writeData.length == 0) {
+					// 	this.openInfoMsg({
+					// 		title: Things.DataGlobal.t('title.info'),
+					// 		text: Things.DataGlobal.t('text.NOTHING_CHANGED'),
+					// 		type: 'info'
+					// 	});
+					// } else {
 						this.updateMultipleData(this.gridSaveAction);
-					}
+					// }
 				}
 			} catch (err) {
 				this.openInfoMsg({
