@@ -7,304 +7,309 @@ Copyright © HatioLab Inc. All rights reserved.
 <link rel="import" href="../things-ajax/things-ajax.html">
 
 <script>
-	window.Things = window.Things || {};
+    window.Things = window.Things || {};
 
-	/**
-	 * 그리드에 행을 추가하거나 삭제하거나 셀 편집을 통해 데이터를 업데이트해서
-	 * 한꺼번에 저장(Create, Update, Delete)하는 기능을 제공하는 그리드 Behavior
-	 *
-	 * @polymerBehavior Things.GridSaveBehavior
-	 */
-	Things.GridSaveBehavior = {
+    /**
+     * 그리드에 행을 추가하거나 삭제하거나 셀 편집을 통해 데이터를 업데이트해서
+     * 한꺼번에 저장(Create, Update, Delete)하는 기능을 제공하는 그리드 Behavior
+     *
+     * @polymerBehavior Things.GridSaveBehavior
+     */
+    Things.GridSaveBehavior = {
 
-		properties: {
-			/**
-			 * 저장(Multiple Update)할 서버 측 URL
-			 */
-			gridSaveAction: {
-				type: String
-			},
+        properties: {
+            /**
+             * 저장(Multiple Update)할 서버 측 URL
+             */
+            gridSaveAction: {
+                type: String
+            },
 
-			/**
-			 * Save 버튼 클릭시에 Save할 데이터를 모두 추출하여 이 Property에 assign한다.
-			 * 외부에서 Save 데이터를 저장 바로 직전에 핸들링 가능하다.
-			 */
-			writeData: {
-				type: Array
-			}
+            /**
+             * Save 버튼 클릭시에 Save할 데이터를 모두 추출하여 이 Property에 assign한다.
+             * 외부에서 Save 데이터를 저장 바로 직전에 핸들링 가능하다.
+             */
+            writeData: {
+                type: Array
+            }
 
-			/**
-			 * 그리드 Save(저장/삭제/추가) 버튼 클릭시 서버에 업데이트 요청할 writeData를 셋업하기 전 발생하는 이벤트
-			 * 따라서 외부에서 이 이벤트를 잡아서 event.preventDefault()를 호출하고
-			 * 별도로 writeData 할당 로직을 작성하면 기본 로직을 override 할 수 있다.
-			 *
-			 * @event things-grid-handle-build-writedata
-			 */
-			/**
-			 * 그리드 Save(저장/삭제/추가) 버튼 클릭시 서버에 업데이트 요청할 writeData가 할당된 이후 발생하는 이벤트
-			 * 이 이벤트에는 writeData가 포함되어 있으므로 외부에서 이 이벤트를 받은 후에 writeData를 조작할 수 있다.
-			 *
-			 * @event things-grid-handle-built-writedata
-			 */
-			/**
-			 * 그리드 Save(저장/삭제/추가) 로직 수행 전 발생하는 이벤트.
-			 * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
-			 *
-			 * @event things-grid-handle-save
-			 */
-			/**
-			 * 그리드 데이터 Save(저장/삭제/추가) 액션이 성공시 발생하는 이벤트
-			 *
-			 * @event things-grid-save-success
-			 */
-			/**
-			 * 그리드 데이터 Save(저장/삭제/추가) 액션시 에러 발생시 발생하는 이벤트
-			 *
-			 * @event things-grid-save-error
-			 */
-		},
+            /**
+             * 그리드 Save(저장/삭제/추가) 버튼 클릭시 서버에 업데이트 요청할 writeData를 셋업하기 전 발생하는 이벤트
+             * 따라서 외부에서 이 이벤트를 잡아서 event.preventDefault()를 호출하고
+             * 별도로 writeData 할당 로직을 작성하면 기본 로직을 override 할 수 있다.
+             *
+             * @event things-grid-handle-build-writedata
+             */
+            /**
+             * 그리드 Save(저장/삭제/추가) 버튼 클릭시 서버에 업데이트 요청할 writeData가 할당된 이후 발생하는 이벤트
+             * 이 이벤트에는 writeData가 포함되어 있으므로 외부에서 이 이벤트를 받은 후에 writeData를 조작할 수 있다.
+             *
+             * @event things-grid-handle-built-writedata
+             */
+            /**
+             * 그리드 Save(저장/삭제/추가) 로직 수행 전 발생하는 이벤트.
+             * 이 이벤트를 잡아서 event.preventDefault()를 호출하고 별도 로직을 작성하면 기본 로직을 override 할 수 있다.
+             *
+             * @event things-grid-handle-save
+             */
+            /**
+             * 그리드 데이터 Save(저장/삭제/추가) 액션이 성공시 발생하는 이벤트
+             *
+             * @event things-grid-save-success
+             */
+            /**
+             * 그리드 데이터 Save(저장/삭제/추가) 액션시 에러 발생시 발생하는 이벤트
+             *
+             * @event things-grid-save-error
+             */
+        },
 
-		listeners: {
-			'things-grid-configured': '_initializeSaveBehavior'
-		},
+        listeners: {
+            'things-grid-configured': '_initializeSaveBehavior'
+        },
 
-		/**
-		 * 그리드 구성이 완료된 후 GridSaveBehavior를 initialize 한다.
-		 *
-		 * @param {Object} e things-grid-configured 이벤트
-		 */
-		_initializeSaveBehavior: function(e) {
-			var grid = e.detail;
+        /**
+         * 그리드 구성이 완료된 후 GridSaveBehavior를 initialize 한다.
+         *
+         * @param {Object} e things-grid-configured 이벤트
+         */
+        _initializeSaveBehavior: function(e) {
+            var grid = e.detail;
 
-			if (grid && this.isButtonExist('save-btn')) {
-				var evt = this.fire('things-grid-save-configured', grid, {
-					cancelable: true
-				});
-				if (!evt.defaultPrevented) {
-					grid.editOptions().updateByCell(true);
-					grid.editOptions().setUpdatable(true);
-					// button tap 이벤트 추가
-					this.listen(this.$['button-group'], 'save-btn-tap', 'saveGridData');
-					this.fire('things-grid-save-configured', grid);
-				}
-			}
+            if (grid && this.isButtonExist('save-btn')) {
+                var evt = this.fire('things-grid-save-configured', grid, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
+                    grid.editOptions().updateByCell(true);
+                    grid.editOptions().setUpdatable(true);
+                    // button tap 이벤트 추가
+                    this.listen(this.$['button-group'], 'save-btn-tap', 'saveGridData');
+                    this.fire('things-grid-save-configured', grid);
+                }
+            }
 
-			if(grid && this.isButtonExist('clear-cache-btn')) {
-				var evt = this.fire('things-grid-clear-cache-configured', grid, { cancelable: true });
-				if(!evt.defaultPrevented) {
-					// button tap 이벤트 추가
-					this.listen(this.$['button-group'], 'clear-cache-btn-tap', 'clearCache');
-					this.fire('things-grid-clear-cache-configured', grid);
-				}
-			}
-		},
+            if (grid && this.isButtonExist('clear-cache-btn')) {
+                var evt = this.fire('things-grid-clear-cache-configured', grid, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
+                    // button tap 이벤트 추가
+                    this.listen(this.$['button-group'], 'clear-cache-btn-tap', 'clearCache');
+                    this.fire('things-grid-clear-cache-configured', grid);
+                }
+            }
+        },
 
-		/**
-		 * 그리드의 변경된 데이터를 감지하여 서버로 한꺼번에 Create/Update/Delete 요청을 한다.
-		 *
-		 * @param {Object} e button tap event
-		 */
-		saveGridData: function(e) {
-			this.grid.commit();
+        /**
+         * 그리드의 변경된 데이터를 감지하여 서버로 한꺼번에 Create/Update/Delete 요청을 한다.
+         *
+         * @param {Object} e button tap event
+         */
+        saveGridData: function(e) {
+            this.grid.commit();
 
-			try {
-				// 1. 업데이트할 데이터를 셋업한다.
-				var evt = this.fire('things-grid-handle-build-writedata', this.grid, {
-					cancelable: true
-				});
-				if (!evt.defaultPrevented) {
-					this.setupWriteData();
-				}
-				// 2. 업데이트할 데이터를 서버에 요청하여 업데이트한다.
-				evt = this.fire('things-grid-handle-save', this.grid, {
-					cancelable: true
-				});
-				if (!evt.defaultPrevented) {
-					//没有数据也发送保存Ajax，用于刷新数据
-					// if (!this.writeData || this.writeData.length == 0) {
-					// 	this.openInfoMsg({
-					// 		title: Things.DataGlobal.t('title.info'),
-					// 		text: Things.DataGlobal.t('text.NOTHING_CHANGED'),
-					// 		type: 'info'
-					// 	});
-					// } else {
-						this.updateMultipleData(this.gridSaveAction);
-					// }
-				}
-			} catch (err) {
-				this.openInfoMsg({
-					type: 'error',
-					title: err.title ? err.title : Things.DataGlobal.t('error.VALIDATION_ERROR'),
-					text: err.message ? err.message : err.toString()
-				});
-			}
-		},
+            try {
+                // 1. 업데이트할 데이터를 셋업한다.
+                var evt = this.fire('things-grid-handle-build-writedata', this.grid, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
+                    this.setupWriteData();
+                }
+                // 2. 업데이트할 데이터를 서버에 요청하여 업데이트한다.
+                evt = this.fire('things-grid-handle-save', this.grid, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
+                    //没有数据也发送保存Ajax，用于刷新数据
+                    // if (!this.writeData || this.writeData.length == 0) {
+                    // 	this.openInfoMsg({
+                    // 		title: Things.DataGlobal.t('title.info'),
+                    // 		text: Things.DataGlobal.t('text.NOTHING_CHANGED'),
+                    // 		type: 'info'
+                    // 	});
+                    // } else {
+                    this.updateMultipleData(this.gridSaveAction);
+                    // }
+                }
+            } catch (err) {
+                this.openInfoMsg({
+                    type: 'error',
+                    title: err.title ? err.title : Things.DataGlobal.t('error.VALIDATION_ERROR'),
+                    text: err.message ? err.message : err.toString()
+                });
+            }
+        },
 
-		/**
-		 * 저장 전 Validation
-		 *
-		 * @param {Object} changedData
-		 */
-		checkValidation: function(changedData) {
-			var self = this;
+        /**
+         * 저장 전 Validation
+         *
+         * @param {Object} changedData
+         */
+        checkValidation: function(changedData) {
+            var self = this;
 
-			var notnullFields = this.columns.filter(function(column) {
-				return (column.fieldName == 'id') ? false : column.nullable === false;
-			});
+            var notnullFields = this.columns.filter(function(column) {
+                return (column.fieldName == 'id') ? false : column.nullable === false;
+            });
 
-			changedData.forEach(function(data) {
-				notnullFields.forEach(function(notnullField) {
-					var valid = true;
-					var fieldName = notnullField.fieldName;
+            changedData.forEach(function(data) {
+                notnullFields.forEach(function(notnullField) {
+                    var valid = true;
+                    var fieldName = notnullField.fieldName;
 
-					if (notnullField.styles && notnullField.styles.iconIndex && notnullField.styles.iconIndex == 'resource-selector') {
-						valid = data[fieldName] ? ((!data[fieldName].id || data[fieldName].id == 0) ? false : true) : false;
-					} else {
-						valid = data[fieldName] ? true : false;
-					}
+                    if (notnullField.styles && notnullField.styles.iconIndex && notnullField.styles.iconIndex == 'resource-selector') {
+                        valid = data[fieldName] ? ((!data[fieldName].id || data[fieldName].id == 0) ? false : true) : false;
+                    } else {
+                        valid = data[fieldName] ? true : false;
+                    }
 
-					if (valid == false) {
-						throw {
-							value: (notnullField.header) ? notnullField.header.text : fieldName,
-							title: Things.DataGlobal.t('error.VALIDATION_ERROR'),
-							message: Things.DataGlobal.t('error.SHOULD_NOT_BE_EMPTY', {
-								value: notnullField.header.text
-							})
-						};
-					}
-				})
-			});
-		},
+                    if (valid == false) {
+                        throw {
+                            value: (notnullField.header) ? notnullField.header.text : fieldName,
+                            title: Things.DataGlobal.t('error.VALIDATION_ERROR'),
+                            message: Things.DataGlobal.t('error.SHOULD_NOT_BE_EMPTY', {
+                                value: notnullField.header.text
+                            })
+                        };
+                    }
+                })
+            });
+        },
 
-		/**
-		 * 그리드에서 정보를 추출하여 Save(저장/삭제/추가)할 정보를 writeData에 할당한다.
-		 * 이 로직을 override하려면 things-grid-handle-build-writedata 이벤트를 prevent시키고 별도의 할당 로직을 작성해야 한다.
-		 * writeData가 셋업되면 things-grid-handle-built-writedata 이벤트가 발생한다. 이 이벤트 내에는 셋업된 데이터가 포함되어 있다.
-		 */
-		setupWriteData: function() {
-			var changedDataList = [];
-			this._configureChangedData(changedDataList, 'created', 'c');
-			this._configureChangedData(changedDataList, 'updated', 'u');
-			this._configureChangedData(changedDataList, 'deleted', 'd');
-			this.writeData = this._handleWriteData(changedDataList);
-			this.fire('things-grid-handle-built-writedata', this.writeData);
-		},
+        /**
+         * 그리드에서 정보를 추출하여 Save(저장/삭제/추가)할 정보를 writeData에 할당한다.
+         * 이 로직을 override하려면 things-grid-handle-build-writedata 이벤트를 prevent시키고 별도의 할당 로직을 작성해야 한다.
+         * writeData가 셋업되면 things-grid-handle-built-writedata 이벤트가 발생한다. 이 이벤트 내에는 셋업된 데이터가 포함되어 있다.
+         */
+        setupWriteData: function() {
+            var changedDataList = [];
+            this._configureChangedData(changedDataList, 'created', 'c');
+            this._configureChangedData(changedDataList, 'updated', 'u');
+            this._configureChangedData(changedDataList, 'deleted', 'd');
+            this.writeData = this._handleWriteData(changedDataList);
+            this.fire('things-grid-handle-built-writedata', this.writeData);
+        },
 
-		/**
-		 * 변경 타입(created, updated, deleted)에 따라 변경데이터를 구성한다.
-		 *
-		 * @param {Object} changedData
-		 * @param {String} changeType 'created', 'updated', 'deleted'
-		 * @param {String} changeFlag 'c', 'u', 'd'
-		 */
-		_configureChangedData: function(changedData, changeType, changeFlag) {
-			var changed = this.dataSet.getStateRows(changeType);
+        /**
+         * 변경 타입(created, updated, deleted)에 따라 변경데이터를 구성한다.
+         *
+         * @param {Object} changedData
+         * @param {String} changeType 'created', 'updated', 'deleted'
+         * @param {String} changeFlag 'c', 'u', 'd'
+         */
+        _configureChangedData: function(changedData, changeType, changeFlag) {
+            var changed = this.dataSet.getStateRows(changeType);
 
-			for (var i = 0; i < changed.length; i++) {
-				var changedRow = this.dataSet.getRowObject(changed[i]);
-				changedRow.cud_flag_ = changeFlag;
-				changedData.push(changedRow);
-			}
+            for (var i = 0; i < changed.length; i++) {
+                var changedRow = this.dataSet.getRowObject(changed[i]);
+                changedRow.cud_flag_ = changeFlag;
+                changedData.push(changedRow);
+            }
 
-			if (changeType != 'deleted') {
-				// 1. 업데이트할 데이터를 점검한다.
-				var evt = this.fire('things-grid-handle-validation', this.grid, {
-					cancelable: true
-				});
-				if (!evt.defaultPrevented) {
-					this.checkValidation(changedData);
-				}
-			}
-		},
+            if (changeType != 'deleted') {
+                // 1. 업데이트할 데이터를 점검한다.
+                var evt = this.fire('things-grid-handle-validation', this.grid, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
+                    this.checkValidation(changedData);
+                }
+            }
+        },
 
-/**
-		 * 변경된 데이터(writeData)에 대한 확장 필드 등에 대한 처리
-		 *
-		 * @param {Array} writeData
-		 */
-		_handleWriteData: function(writeData) {
-			if(!writeData || writeData.length == 0) {
-				return writeData;
-			}
+        /**
+         * 변경된 데이터(writeData)에 대한 확장 필드 등에 대한 처리
+         *
+         * @param {Array} writeData
+         */
+        _handleWriteData: function(writeData) {
+            if (!writeData || writeData.length == 0) {
+                return writeData;
+            }
 
-			// 1. 확장 필드들을 찾는다.
-			var extColumns = this.columns.filter(function(col) {
-				return col.userData && col.userData.extField === true;
-			});
-			var ignoreSaveColumns = this.columns.filter(function(col) {
-				return col.ignoreOnSave === true || col.readOnly===true;
-			});
+            // 1. 확장 필드들을 찾는다.
+            var extColumns = this.columns.filter(function(col) {
+                return col.userData && col.userData.extField === true;
+            });
 
-			// 2. 확장 필드가 있다면 extprops_로 처리
-			if(extColumns && extColumns.length > 0) {
-				writeData.forEach(function(data) {
-					data.extprops_ = {};
-					extColumns.forEach(function(extColumn) {
-						data.extprops_[extColumn.name] = data[extColumn.name];
-						delete data[extColumn.name];
-					});
-				});
-			};
+            /**
+             * 2018.07.09 - 列表字段类型为hidden时，也会无法保存数据，所以暂时注释
+            var ignoreSaveColumns = this.columns.filter(function(col) {
+            	return col.ignoreOnSave === true || col.readOnly===true;
+            });
+            **/
 
-			if(ignoreSaveColumns && ignoreSaveColumns.length>0){
-				writeData.forEach(function(data) {
-					ignoreSaveColumns.forEach(function(ignoreField) {
-						delete data[ignoreField.name];
-					})
-				})
-			}
+            // 2. 확장 필드가 있다면 extprops_로 처리
+            if (extColumns && extColumns.length > 0) {
+                writeData.forEach(function(data) {
+                    data.extprops_ = {};
+                    extColumns.forEach(function(extColumn) {
+                        data.extprops_[extColumn.name] = data[extColumn.name];
+                        delete data[extColumn.name];
+                    });
+                });
+            };
+
+            if (ignoreSaveColumns && ignoreSaveColumns.length > 0) {
+                writeData.forEach(function(data) {
+                    ignoreSaveColumns.forEach(function(ignoreField) {
+                        delete data[ignoreField.name];
+                    })
+                })
+            }
 
 
-			return writeData;
-		},
+            return writeData;
+        },
 
-		/**
-		 * 변경된 데이터(writeData)를 서버에 업데이트 요청한다.
-		 * 이 로직을 override하려면 things-grid-handle-save 이벤트를 prevent시키고 별도의 할당 로직을 작성해야 한다.
-		 *
-		 * @param {String} gridSaveUrl
-		 */
-		updateMultipleData: function(gridSaveUrl) {
-			var ajax = document.createElement('things-ajax');
-			if (this.resourceId) ajax.resourceId = this.resourceId;
-			ajax.resourceUrl = gridSaveUrl;
-			ajax.resourceAction = 'update_multiple';
-			ajax.body = this.writeData;
-			var me = this;
+        /**
+         * 변경된 데이터(writeData)를 서버에 업데이트 요청한다.
+         * 이 로직을 override하려면 things-grid-handle-save 이벤트를 prevent시키고 별도의 할당 로직을 작성해야 한다.
+         *
+         * @param {String} gridSaveUrl
+         */
+        updateMultipleData: function(gridSaveUrl) {
+            var ajax = document.createElement('things-ajax');
+            if (this.resourceId) ajax.resourceId = this.resourceId;
+            ajax.resourceUrl = gridSaveUrl;
+            ajax.resourceAction = 'update_multiple';
+            ajax.body = this.writeData;
+            var me = this;
 
-			ajax.addEventListener('things-ajax-response', function(event) {
-				me.fire('things-grid-save-success', event.detail);
-			});
+            ajax.addEventListener('things-ajax-response', function(event) {
+                me.fire('things-grid-save-success', event.detail);
+            });
 
-			ajax.addEventListener('things-ajax-error', function(event) {
-				me.fire('things-grid-save-error', event.detail);
-			});
+            ajax.addEventListener('things-ajax-error', function(event) {
+                me.fire('things-grid-save-error', event.detail);
+            });
 
-			ajax.generateRequest();
-		},
+            ajax.generateRequest();
+        },
 
-		/**
-		 * 그리드 저장 성공
-		 *
-		 * @param {Object} data
-		 */
-		onGridSaveSuccess: function(data) {
-			this.fire('things-grid-save-success', {
-				detail: data
-			});
-		},
+        /**
+         * 그리드 저장 성공
+         *
+         * @param {Object} data
+         */
+        onGridSaveSuccess: function(data) {
+            this.fire('things-grid-save-success', {
+                detail: data
+            });
+        },
 
-		/**
-		 * 캐쉬 클리어
-		 *
-		 * @param {Object} event
-		 */
-		clearCache: function(event) {
-			var ajax = document.createElement('things-ajax');
-			ajax.resourceUrl = this.gridSaveAction.replace('update_multiple', 'clear_cache');
-			ajax.resourceAction = 'update';
-			ajax.generateRequest();
-		}
-	};
-
+        /**
+         * 캐쉬 클리어
+         *
+         * @param {Object} event
+         */
+        clearCache: function(event) {
+            var ajax = document.createElement('things-ajax');
+            ajax.resourceUrl = this.gridSaveAction.replace('update_multiple', 'clear_cache');
+            ajax.resourceAction = 'update';
+            ajax.generateRequest();
+        }
+    };
 </script>
