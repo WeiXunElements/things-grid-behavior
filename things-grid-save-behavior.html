@@ -252,6 +252,8 @@ Copyright © HatioLab Inc. All rights reserved.
                 });
             };
 
+            /**
+			 * 2018.07.09 - 列表字段类型为hidden时，也会无法保存数据，所以暂时注释
             if (ignoreSaveColumns && ignoreSaveColumns.length > 0) {
                 writeData.forEach(function(data) {
                     ignoreSaveColumns.forEach(function(ignoreField) {
@@ -259,7 +261,7 @@ Copyright © HatioLab Inc. All rights reserved.
                     })
                 })
             }
-
+			**/
 
             return writeData;
         },
