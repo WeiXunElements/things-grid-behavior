@@ -406,7 +406,9 @@ Copyright © HatioLab Inc. All rights reserved.
                     items: this.gridImageItems
                 });
 
-                this.grid.registerCellStyle('uneditable', { 'editable': false });
+                this.grid.registerCellStyle('uneditable', {
+                    'editable': false
+                });
 
                 this.grid.body().setCellDynamicStyles(this.gridCellStyles);
                 this.grid.footer().setVisible(this.showGridFooter);
@@ -430,11 +432,13 @@ Copyright © HatioLab Inc. All rights reserved.
 
                 if (this.data) {
                     this._setGridData(this.data)
-                    // this.dataSet.setRows(this.data);
+                        // this.dataSet.setRows(this.data);
                 }
 
                 if (this.grid && this.events) {
-                    var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
+                    var evt = this.fire('things-grid-event-configure', this.grid, {
+                        cancelable: true
+                    });
                     if (!evt.defaultPrevented) {
                         for (var eventName in this.events) {
                             this.grid[eventName] = this[this.events[eventName]];
@@ -471,14 +475,14 @@ Copyright © HatioLab Inc. All rights reserved.
 
                 var multilineFlag = false;
                 this.columns.forEach(function(column) {
-                    if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
+                    if (!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
                         multilineFlag = true;
                     }
                 });
 
                 // ImageRenderer가 있다면 Row Height를 100으로 확장
-                if(multilineFlag) {
-                    if(this.rowHeight <= 50) this.rowHeight = 100;
+                if (multilineFlag) {
+                    if (this.rowHeight <= 50) this.rowHeight = 100;
                 }
 
                 this.grid.displayOptions().setRowHeight(this.rowHeight);
@@ -486,10 +490,16 @@ Copyright © HatioLab Inc. All rights reserved.
 
                 // 7. Styles
                 this.grid.loadStyles({
-                  body: {
-                    rowHover: { background: '#26e3ad5f' },
-                    fixedCell: { background: '', borderRight: '', borderBottom: ''}
-                  }
+                    body: {
+                        rowHover: {
+                            background: '#26e3ad5f'
+                        },
+                        fixedCell: {
+                            background: '',
+                            borderRight: '',
+                            borderBottom: ''
+                        }
+                    }
                 });
 
                 this.resizeGrid();
@@ -600,7 +610,9 @@ Copyright © HatioLab Inc. All rights reserved.
                     model: model,
                     columns: columns
                 };
-                var evt = this.fire('things-grid-configure', evtDetail, { cancelable: true });
+                var evt = this.fire('things-grid-configure', evtDetail, {
+                    cancelable: true
+                });
                 if (!evt.defaultPrevented) {
                     this.initializeGrid();
                 }
@@ -618,7 +630,9 @@ Copyright © HatioLab Inc. All rights reserved.
             var fields = (typeof(gridModel) === 'string') ? JSON.parse(gridModel) : gridModel.slice();
 
             if (this.enableDetailColumn) {
-                fields.unshift({fieldName : '_detail_'});
+                fields.unshift({
+                    fieldName: '_detail_'
+                });
             }
 
             if (fields && fields.length > 0) {
@@ -632,33 +646,33 @@ Copyright © HatioLab Inc. All rights reserved.
          ********
          * @param {Object} column
          */
-         _addCodeData: function(column) {
-             var ajax = document.createElement('things-ajax');
+        _addCodeData: function(column) {
+            var ajax = document.createElement('things-ajax');
 
-             if(column.userData.resourceType && column.userData.resourceType == 'entity') {
-               ajax.resourceUrl = 'entities/' + column.userData.resourceName + '/search_records_as_code?select=' + column.userData.selectFields;
-               ajax.resourceAction = 'index';
-             } else {
-               ajax.resourceUrl = 'common_codes/show_by_name?name=' + column.userData.resourceName;
-               ajax.resourceAction = 'find';
-             }
+            if (column.userData.resourceType && column.userData.resourceType == 'entity') {
+                ajax.resourceUrl = 'entities/' + column.userData.resourceName + '/search_records_as_code?select=' + column.userData.selectFields;
+                ajax.resourceAction = 'index';
+            } else {
+                ajax.resourceUrl = 'common_codes/show_by_name?name=' + column.userData.resourceName;
+                ajax.resourceAction = 'find';
+            }
 
-             column.lookupValues = [''];
-             column.lookupLabels = [''];
+            column.lookupValues = [''];
+            column.lookupLabels = [''];
 
-             ajax.addEventListener('things-ajax-response', function(event) {
-                 var code = event.detail;
-                 var codeItems = (code && code.items) ? code.items : code;
+            ajax.addEventListener('things-ajax-response', function(event) {
+                var code = event.detail;
+                var codeItems = (code && code.items) ? code.items : code;
 
-                 codeItems.forEach(function(item) {
-                     column.lookupLabels.push(item.description);
-                     column.lookupValues.push(item.name);
-                 });
-                 this.grid.setColumns(this.columns);
-             }.bind(this));
+                codeItems.forEach(function(item) {
+                    column.lookupLabels.push(item.description);
+                    column.lookupValues.push(item.name);
+                });
+                this.grid.setColumns(this.columns);
+            }.bind(this));
 
-             ajax.generateRequest();
-         },
+            ajax.generateRequest();
+        },
 
         /**
          * Set Grid Column Views
@@ -666,34 +680,34 @@ Copyright © HatioLab Inc. All rights reserved.
          * @param {Array} / {String} columns
          */
         _setGridColumns: function(columns) {
-            if(!columns || !this.grid) return;
+            if (!columns || !this.grid) return;
 
             var gridColumns = (typeof(columns) === 'string') ? JSONfn.parse(columns) : columns.slice();
             var multilineFlag = false;
 
             // list type의 그리드 컬럼에 라벨 벨류를 함께 표시하도록 설정
             gridColumns.forEach(function(column) {
-                if(column.editor && column.editor.type == 'list') {
+                if (column.editor && column.editor.type == 'list') {
                     column.editor.listItemDisplay = 'labelValue';
                     column.editor.listItemColumned = true;
 
-                    if((!column.lookupValues || column.lookupValues.length == 0) && column.userData && column.userData.resourceName) {
+                    if ((!column.lookupValues || column.lookupValues.length == 0) && column.userData && column.userData.resourceName) {
                         this._addCodeData(column);
                     }
                 }
 
-                if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
+                if (!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
                     multilineFlag = true;
                 }
 
-                if(this.autoFilter){
-                    var filteredArray = this.model.filter(function(field){
-                        return field.fieldName == column.fieldName && field.dataType=='object';
+                if (this.autoFilter) {
+                    var filteredArray = this.model.filter(function(field) {
+                        return field.fieldName == column.fieldName && field.dataType == 'object';
                     });
-                    if(filteredArray && filteredArray.length==0){
+                    if (filteredArray && filteredArray.length == 0) {
                         column.autoFilter = {
-                            'active'     : true,
-                            'ignoreCase' : true,
+                            'active': true,
+                            'ignoreCase': true,
                             'displayCase': DataLudi.TextCase.UPPER
                         };
                     }
@@ -701,8 +715,8 @@ Copyright © HatioLab Inc. All rights reserved.
             }.bind(this));
 
             // ImageRenderer가 있다면 Row Height를 60으로 확장
-            if(multilineFlag) {
-                if(this.rowHeight <= 50) this.rowHeight = 100;
+            if (multilineFlag) {
+                if (this.rowHeight <= 50) this.rowHeight = 100;
             }
 
             if (this.enableDetailColumn) {
@@ -740,7 +754,9 @@ Copyright © HatioLab Inc. All rights reserved.
             var gridConfig = (typeof(config) === 'string') ? JSON.parse(config) : config;
 
             if (!gridConfig) {
-                this.grid.setEditOptions({ readOnly: true });
+                this.grid.setEditOptions({
+                    readOnly: true
+                });
 
             } else {
                 var grid = this.grid;
@@ -823,21 +839,23 @@ Copyright © HatioLab Inc. All rights reserved.
          * 데이터 변경 이벤트 핸들러
          */
         _setGridData: function() {
-            if(this.grid){
-                var evt = this.fire('things-grid-data-change', this.data, { cancelable: true });
+            if (this.grid) {
+                var evt = this.fire('things-grid-data-change', this.data, {
+                    cancelable: true
+                });
                 if (!evt.defaultPrevented && this.data && this.dataSet) {
-                    if(this.grid) this.grid.commit();
+                    if (this.grid) this.grid.commit();
 
                     // 데이터에 extprops_가 있다면 extprops_ 오브젝트를 옆으로 확장한다.
-                    if(this.data && this.data.length > 0 && this.data.forEach) {
-                      this.data.forEach(function(record) {
-                        if(record.extprops_) {
-                          for(key in record.extprops_) {
-                            var val = record.extprops_[key];
-                            record[key] = val;
-                          }
-                        }
-                      });
+                    if (this.data && this.data.length > 0 && this.data.forEach) {
+                        this.data.forEach(function(record) {
+                            if (record.extprops_) {
+                                for (key in record.extprops_) {
+                                    var val = record.extprops_[key];
+                                    record[key] = val;
+                                }
+                            }
+                        });
                     }
 
                     this.dataSet.setRows(this.data);
@@ -852,7 +870,9 @@ Copyright © HatioLab Inc. All rights reserved.
          * @param {Object} e iron-resize 이벤트
          */
         _gridResizeHandler: function(e) {
-            var evt = this.fire('things-grid-resize', this.grid, { cancelable: true });
+            var evt = this.fire('things-grid-resize', this.grid, {
+                cancelable: true
+            });
             if (!evt.defaultPrevented) {
                 if (this.grid == null) {
                     this.initializeGrid();
@@ -877,7 +897,7 @@ Copyright © HatioLab Inc. All rights reserved.
             var fieldName = column.dataFieldName();
             var dataSet = grid.dataSource();
 
-            if(styles && styles.iconIndex() == 'resource-selector') {
+            if (styles && styles.iconIndex() == 'resource-selector') {
                 rowObj[fieldName] = {};
                 dataSet.updateRow(rowIdx, rowObj);
                 grid.refreshView();
@@ -887,21 +907,23 @@ Copyright © HatioLab Inc. All rights reserved.
                 var fieldValue = rowObj[fieldName];
 
                 popupEditor.value = fieldValue;
-                if(column.userData() && column.userData().editorMode) popupEditor.editorMode = column.userData().editorMode;
+                if (column.userData() && column.userData().editorMode) popupEditor.editorMode = column.userData().editorMode;
                 popupEditor.title = column.header().text();
                 popupEditor.confirmCallback = function() {
                     rowObj[fieldName] = popupEditor.value;
                     dataSet.updateRow(rowIdx, rowObj);
                 };
-                if(popupEditor.is) {
+                if (popupEditor.is) {
                     var eventDetail = {
                         editor: popupEditor,
                         grid: grid,
                         index: index
                     };
-                    var evt = thingsGrid.fire('things-grid-popup-editor-select', eventDetail, { cancelable: true });
+                    var evt = thingsGrid.fire('things-grid-popup-editor-select', eventDetail, {
+                        cancelable: true
+                    });
 
-                    if(!evt.defaultPrevented) {
+                    if (!evt.defaultPrevented) {
                         thingsGrid.fire('things-open-popup-view', {
                             view: popupEditor,
                             modal: true,
@@ -952,7 +974,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 if (row && row.dataIndex() >= 0) {
                     selectedRowObj = row.getRowObject();
 
-                    if(thingsGrid.preventMultiClickEvent && thingsGrid.selectedRowData && selectedRowObj.id && selectedRowObj.id === thingsGrid.selectedRowData.id) {
+                    if (thingsGrid.preventMultiClickEvent && thingsGrid.selectedRowData && selectedRowObj.id && selectedRowObj.id === thingsGrid.selectedRowData.id) {
                         return;
                     }
 
@@ -962,7 +984,10 @@ Copyright © HatioLab Inc. All rights reserved.
 
                 if (thingsGrid.dataSet && colIndex >= 0) {
                     thingsGrid._setSelectedCellData(thingsGrid.dataSet.getValue(rowIndex, colIndex));
-                    thingsGrid.fire('things-grid-cell-data-select', { row: thingsGrid.selectedRowData, cell: cellData });
+                    thingsGrid.fire('things-grid-cell-data-select', {
+                        row: thingsGrid.selectedRowData,
+                        cell: cellData
+                    });
                 }
 
                 if (thingsGrid.enableDetailColumn &&
@@ -993,7 +1018,7 @@ Copyright © HatioLab Inc. All rights reserved.
             var rowIdx = index.rowIndex;
             var fieldIdx = index.dataField();
             var cellStyleId = grid.getCellStyleId(rowIdx, fieldIdx);
-            if(cellStyleId == 'uneditable') return;
+            if (cellStyleId == 'uneditable') return;
 
             var iconStyle = column.styles().iconIndex();
 
@@ -1005,13 +1030,18 @@ Copyright © HatioLab Inc. All rights reserved.
                     userData: matchColumn ? matchColumn[0].userData : null,
                     index: index
                 };
-                var evt = me.fire('things-grid-resource-column-edit', eventDetail, { cancelable: true });
+                var evt = me.fire('things-grid-resource-column-edit', eventDetail, {
+                    cancelable: true
+                });
                 if (!evt.defaultPrevented) {
-                    me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
+                    // 2018.08.22 - grid데이터배열 적용시, resource-selector선택에러
+                    me.openResourceSelectorByGrid(grid, index.getRow().dataIndex(), eventDetail.userData, true);
                 }
 
             } else if (iconStyle == 'date-picker') {
-                var evt = me.fire('things-grid-date-column-edit', eventDetail, { cancelable: true });
+                var evt = me.fire('things-grid-date-column-edit', eventDetail, {
+                    cancelable: true
+                });
                 if (!evt.defaultPrevented) {
                     var dataSet = grid.dataSource();
                     var row = grid.focusedRow();
@@ -1025,18 +1055,23 @@ Copyright © HatioLab Inc. All rights reserved.
                         date: rowObj[column.name()]
                     };
 
-                    if(column.userData()) {
+                    if (column.userData()) {
                         var usrData = column.userData();
-                        if(usrData.minDate) dataObj.minDate = usrData.minDate;
-                        if(usrData.maxDate) dataObj.maxDate = usrData.maxDate;
+                        if (usrData.minDate) dataObj.minDate = usrData.minDate;
+                        if (usrData.maxDate) dataObj.maxDate = usrData.maxDate;
                     }
 
-                    me.fire('things-date-picker-toggle', { dataObj : dataObj, callback : me._applySelectedDate });
+                    me.fire('things-date-picker-toggle', {
+                        dataObj: dataObj,
+                        callback: me._applySelectedDate
+                    });
                 }
 
             } else if (iconStyle == 'image-selector' || iconStyle == 'image-renderer') {
-                var evt = me.fire('things-grid-image-selector-edit', eventDetail, { cancelable: true });
-                if(!evt.defaultPrevented) {
+                var evt = me.fire('things-grid-image-selector-edit', eventDetail, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
                     var dataSet = grid.dataSource();
                     var row = grid.focusedRow();
                     var rowObj = row.getRowObject();
@@ -1050,12 +1085,17 @@ Copyright © HatioLab Inc. All rights reserved.
                         selectedImageId: rowObj[column.name()]
                     };
 
-                    me.fire('things-image-selector-toggle', { dataObj : dataObj, callback : me._applySelectedImage });
+                    me.fire('things-image-selector-toggle', {
+                        dataObj: dataObj,
+                        callback: me._applySelectedImage
+                    });
                 }
 
             } else if (iconStyle == 'file-selector') {
-                var evt = me.fire('things-grid-file-selector-edit', eventDetail, { cancelable: true});
-                if(!evt.defaultPrevented) {
+                var evt = me.fire('things-grid-file-selector-edit', eventDetail, {
+                    cancelable: true
+                });
+                if (!evt.defaultPrevented) {
                     var dataSet = grid.dataSource();
                     var row = grid.focusedRow();
                     var rowObj = row.getRowObject();
@@ -1076,7 +1116,10 @@ Copyright © HatioLab Inc. All rights reserved.
                         defaultStorage: defaultStorage
                     };
 
-                    me.fire('things-file-selector-toggle', { dataObj : dataObj, callback: me._applySelectedFile });
+                    me.fire('things-file-selector-toggle', {
+                        dataObj: dataObj,
+                        callback: me._applySelectedFile
+                    });
                 }
             } else if (iconStyle == 'resource-format-selector') {
                 var matchColumn = me.columns.filter(function(col) {
@@ -1086,13 +1129,18 @@ Copyright © HatioLab Inc. All rights reserved.
                     userData: matchColumn ? matchColumn[0].userData : null,
                     index: index
                 };
-                var evt = me.fire('things-grid-resource-format-column-edit', eventDetail, { cancelable: true });
+                var evt = me.fire('things-grid-resource-format-column-edit', eventDetail, {
+                    cancelable: true
+                });
                 if (!evt.defaultPrevented) {
                     me.openResourceSelectorByGrid(grid, index.rowIndex, eventDetail.userData, true);
                 }
 
             } else {
-                me.fire('things-grid-column-dblclicked', { grid: grid, index: index });
+                me.fire('things-grid-column-dblclicked', {
+                    grid: grid,
+                    index: index
+                });
             }
         },
 
@@ -1139,7 +1187,10 @@ Copyright © HatioLab Inc. All rights reserved.
             var rowIdx = dataObj.ownerGridIdx;
             var dataSet = grid.dataSource();
 
-            rowObj['attachment'] = { id : dataObj.value, name : dataObj.displayValue };
+            rowObj['attachment'] = {
+                id: dataObj.value,
+                name: dataObj.displayValue
+            };
             dataSet.updateRow(rowIdx, rowObj);
             grid.refreshView();
 
