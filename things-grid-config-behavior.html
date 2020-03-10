@@ -454,7 +454,10 @@ Copyright © HatioLab Inc. All rights reserved.
                 this.grid.setUndoable(true);
 
                 // 2. Auto Fill
-                this.grid.setAutoFill(true);
+                this.grid.setAutoFill({
+                    enabled: true,
+                    checkReadOnly: true
+                });
 
                 // 3. Check Draggable
                 this.grid.checkBar().setDraggable(true);
