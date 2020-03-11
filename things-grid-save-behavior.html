@@ -204,6 +204,9 @@ Copyright © HatioLab Inc. All rights reserved.
 
             for (var i = 0; i < changed.length; i++) {
                 var changedRow = this.dataSet.getRowObject(changed[i]);
+                if (changeFlag === 'd' && !changedRow.id)
+                    continue;
+                    
                 changedRow.cud_flag_ = changeFlag;
                 changedData.push(changedRow);
             }
