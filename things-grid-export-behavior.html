@@ -121,7 +121,7 @@ Copyright © HatioLab Inc. All rights reserved.
                             var userData = column.userData();
                             if (typeof v == 'object' && typeof userData == 'object') {
                                 var titleField = userData.titleField;
-                                return v['description'] || v[titleField];
+                                return v[titleField] || v['id'];
                             } else {
                                 return v;
                             }
