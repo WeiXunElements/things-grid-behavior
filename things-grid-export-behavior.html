@@ -27,7 +27,23 @@ Copyright © HatioLab Inc. All rights reserved.
             exportSheetName: {
                 type: String,
                 value: 'Sheet1'
-            }
+            },
+
+            /**
+             * Export number column value format
+             */
+            exportNumberFormat: {
+                type: String,
+                value: '#,###'
+            },
+
+            /**
+             * Export date column value format
+             */
+            exportDatetimeFormat: {
+                type: String,
+                value: 'yyyy-mm-dd'
+            },
 
             /**
              * 그리드 Export Behavior 구성 전 발생하는 이벤트
@@ -109,8 +125,8 @@ Copyright © HatioLab Inc. All rights reserved.
                     new DataLudi.GridExcelExporter().export(this.grid, {
                         target: 'local',
                         fileName: this.exportFileName,
-                        numberFormat: '#,###',
-                        datetimeFormat: 'yyyy-mm-dd',
+                        numberFormat: this.exportNumberFormat,
+                        datetimeFormat: this.exportDatetimeFormat,
                         rowIndicator: 'hidden',
                         async: true,
                         showProgress: true,
