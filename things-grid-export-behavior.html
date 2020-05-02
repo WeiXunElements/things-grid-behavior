@@ -34,7 +34,7 @@ Copyright © HatioLab Inc. All rights reserved.
              */
             exportNumberFormat: {
                 type: String,
-                value: '#,###'
+                value: '0.000'
             },
 
             /**
@@ -130,6 +130,7 @@ Copyright © HatioLab Inc. All rights reserved.
                         rowIndicator: 'hidden',
                         async: true,
                         showProgress: true,
+                        checkNumber: true,
                         onFinished: function(grid, error, elapsed) {
                             grid.setColumns(originalColumns);
                         },
@@ -148,6 +149,13 @@ Copyright © HatioLab Inc. All rights reserved.
                                 return column.getLookupLabel(v);
                             } else {
                                 return v;
+                            }
+                        },
+                        numberCallback: function(row, column, v) {
+                            if (column._valueType == 'number') {
+                                return v ;
+                            } else {
+                                return v + '' ;
                             }
                         }
                     });
