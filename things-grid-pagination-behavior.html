@@ -1,235 +1,233 @@
 <!--
 @license
-Copyright © HatioLab Inc. All rights reserved.
+Copyright © 2015-2021 Shenzhen Weixun All rights reserved.
 -->
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/polymer.html" />
 
-<link rel="import" href="../things-paginator/things-paginator.html">
+<link rel="import" href="../things-paginator/things-paginator.html" />
 
 <script>
-	window.Things = window.Things || {};
+  window.Things = window.Things || {};
 
-	/**
-	 * 그리드에 Pagination 기능을 제공하는 그리드 Behavior
-	 *
-	 * @polymerBehavior Things.GridPaginationBehavior
-	 */
-	Things.GridPaginationBehavior = {
+  /**
+   * 그리드에 Pagination 기능을 제공하는 그리드 Behavior
+   *
+   * @polymerBehavior Things.GridPaginationBehavior
+   */
+  Things.GridPaginationBehavior = {
+    properties: {
+      /**
+       * Pagination 기능을 사용할 지 여부
+       */
+      paginatable: {
+        type: Boolean,
+        value: false,
+      },
 
-		properties: {
+      /**
+       * Paginator를 표시할 지 여부
+       */
+      showPaginator: {
+        type: Boolean,
+        value: false,
+      },
 
-			/**
-			 * Pagination 기능을 사용할 지 여부
-			 */
-			paginatable: {
-				type: Boolean,
-				value: false
-			},
+      /**
+       * Infinite Scroll 지원 여부
+       */
+      infiniteScroll: {
+        type: Boolean,
+        value: false,
+      },
 
-			/**
-			 * Paginator를 표시할 지 여부
-			 */
-			showPaginator: {
-				type: Boolean,
-				value: false
-			},
+      /**
+       * Page Limit
+       */
+      limit: {
+        type: Number,
+        value: 50,
+        notify: true,
+        observer: "_limitChanged",
+      },
 
-			/**
-			 * Infinite Scroll 지원 여부
-			 */
-			infiniteScroll: {
-				type: Boolean,
-				value: false
-			},
+      /**
+       * Current Page
+       */
+      currentPage: {
+        type: Number,
+        value: 1,
+        notify: true,
+        observer: "_currentPageChanged",
+      },
 
-			/**
-			 * Page Limit
-			 */
-			limit: {
-				type: Number,
-				value: 50,
-				notify: true,
-				observer: '_limitChanged'
-			},
+      /**
+       * Total Data Count
+       */
+      totalCount: {
+        type: Number,
+        value: 0,
+        notify: true,
+        observer: "_totalCountChanged",
+      },
 
-			/**
-			 * Current Page
-			 */
-			currentPage: {
-				type: Number,
-				value: 1,
-				notify: true,
-				observer: '_currentPageChanged'
-			},
+      /**
+       * Page Start Index
+       */
+      pageStartIdx: {
+        type: Number,
+        value: 1,
+      },
 
-			/**
-			 * Total Data Count
-			 */
-			totalCount: {
-				type: Number,
-				value: 0,
-				notify: true,
-				observer: '_totalCountChanged'
-			},
+      /**
+       * Page End Index
+       */
+      pageEndIdx: {
+        type: Number,
+        value: 1,
+      },
 
-			/**
-			 * Page Start Index
-			 */
-			pageStartIdx: {
-				type: Number,
-				value: 1
-			},
+      /**
+       * 그리드 Pagination Behavior 구성 전 발생하는 이벤트
+       *
+       * @event things-grid-paginator-configure
+       */
+      /**
+       * 그리드 Pagination Behavior 구성이 완료된 후 발생하는 이벤트
+       *
+       * @event things-grid-paginator-configured
+       */
+    },
 
-			/**
-			 * Page End Index
-			 */
-			pageEndIdx: {
-				type: Number,
-				value: 1
-			}
+    listeners: {
+      "things-grid-configured": "_initializePaginationBehavior",
+    },
 
-			/**
-			 * 그리드 Pagination Behavior 구성 전 발생하는 이벤트
-			 *
-			 * @event things-grid-paginator-configure
-			 */
-			/**
-			 * 그리드 Pagination Behavior 구성이 완료된 후 발생하는 이벤트
-			 *
-			 * @event things-grid-paginator-configured
-			 */
-		},
+    /**
+     * Ready
+     */
+    ready: function () {
+      // Add Paginator Element
+      var paginator = document.createElement("things-paginator");
+      paginator.id = "paginator";
+      paginator.limit =
+        this.limits && this.limits.length > 0 ? this.limits[0] : this.limit ? this.limit : paginator.limit;
+      paginator.limits = this.limits && this.limits.length > 0 ? this.limits : paginator.limits;
+      paginator.currentPage = this.currentPage;
+      paginator.totalCount = this.totalCount;
+      paginator.pageStartIdx = this.pageStartIdx;
+      paginator.pageEndIdx = this.pageEndIdx;
+      this.$.paginator = paginator;
 
-		listeners: {
-			'things-grid-configured': '_initializePaginationBehavior'
-		},
+      var me = this;
 
-		/**
-		 * Ready
-		 */
-		ready: function() {
-			// Add Paginator Element
-			var paginator = document.createElement('things-paginator');
-			paginator.id = 'paginator';
-			paginator.limit = (this.limits && this.limits.length > 0) ? this.limits[0] : this.limit ? this.limit : paginator.limit;
-			paginator.limits = (this.limits && this.limits.length > 0) ? this.limits : paginator.limits;
-			paginator.currentPage = this.currentPage;
-			paginator.totalCount = this.totalCount;
-			paginator.pageStartIdx = this.pageStartIdx;
-			paginator.pageEndIdx = this.pageEndIdx;
-			this.$.paginator = paginator;
+      // Add Event Listener things-paginator's properties changed
+      paginator.addEventListener("current-page-changed", function (ev) {
+        me.currentPage = this.currentPage;
+      });
 
-			var me = this;
+      paginator.addEventListener("page-limit-changed", function (ev) {
+        me.limit = ev.detail.limit;
+      });
 
-			// Add Event Listener things-paginator's properties changed
-			paginator.addEventListener("current-page-changed", function(ev) {
-				me.currentPage = this.currentPage;
-			});
+      paginator.addEventListener("total-page-changed", function (ev) {
+        me.showPaginator = me.paginatable && this.totalPage && this.totalPage >= 1;
+      });
 
-			paginator.addEventListener("page-limit-changed", function(ev) {
-				me.limit = ev.detail.limit;
-			});
+      paginator.addEventListener("page-start-idx-changed", function (ev) {
+        me.pageStartIdx = this.pageStartIdx;
+      });
 
-			paginator.addEventListener("total-page-changed", function(ev) {
-				me.showPaginator = (me.paginatable) && (this.totalPage && this.totalPage >= 1);
-			});
+      paginator.addEventListener("page-end-idx-changed", function (ev) {
+        me.pageEndIdx = this.pageEndIdx;
+      });
 
-			paginator.addEventListener("page-start-idx-changed", function(ev) {
-				me.pageStartIdx = this.pageStartIdx;
-			});
+      // id가 paginator-container인 Element에 paginator 추가
+      Polymer.dom(this.$["paginator-container"]).appendChild(paginator);
+    },
 
-			paginator.addEventListener("page-end-idx-changed", function(ev) {
-				me.pageEndIdx = this.pageEndIdx;
-			});
+    /**
+     * limit 변경시 핸들러
+     *
+     * @param {Number} newValue
+     */
+    _limitChanged: function (newValue) {
+      if (this.$.paginator) {
+        this.$.paginator.limit = newValue;
+      }
+    },
 
-			// id가 paginator-container인 Element에 paginator 추가
-			Polymer.dom(this.$['paginator-container']).appendChild(paginator);
-		},
+    /**
+     * currentPage 변경시 핸들러
+     *
+     * @param {Number} newValue
+     */
+    _currentPageChanged: function (newValue) {
+      if (this.$.paginator) {
+        this.$.paginator.currentPage = newValue;
+      }
+    },
 
-		/**
-		 * limit 변경시 핸들러
-		 *
-		 * @param {Number} newValue
-		 */
-		_limitChanged: function(newValue) {
-			if (this.$.paginator) {
-				this.$.paginator.limit = newValue;
-			}
-		},
+    /**
+     * totalCount 변경시 핸들러
+     *
+     * @param {Number} newValue
+     */
+    _totalCountChanged: function (newValue) {
+      if (this.$.paginator) {
+        this.$.paginator.totalCount = newValue;
+      }
+    },
 
-		/**
-		 * currentPage 변경시 핸들러
-		 *
-		 * @param {Number} newValue
-		 */
-		_currentPageChanged: function(newValue) {
-			if (this.$.paginator) {
-				this.$.paginator.currentPage = newValue;
-			}
-		},
+    /**
+     * 그리드 구성이 완료된 후 GridPaginationBehavior를 initialize 한다.
+     *
+     * @param {Object} e things-grid-configured 이벤트
+     */
+    _initializePaginationBehavior: function (e) {
+      var grid = e.detail;
 
-		/**
-		 * totalCount 변경시 핸들러
-		 *
-		 * @param {Number} newValue
-		 */
-		_totalCountChanged: function(newValue) {
-			if (this.$.paginator) {
-				this.$.paginator.totalCount = newValue;
-			}
-		},
+      if (grid && this.paginatable) {
+        var evt = this.fire("things-grid-paginator-configure", grid, {
+          cancelable: true,
+        });
+        if (!evt.defaultPrevented) {
+          // infiniteScroll 일 경우 처리
+          if (this.infiniteScroll) {
+            grid.onScrollToBottom = "_gridScrollToBottom";
+            this.listen(this, "things-grid-data-change", "_infiniteGridDataChangedHandler");
+          }
 
-		/**
-		 * 그리드 구성이 완료된 후 GridPaginationBehavior를 initialize 한다.
-		 *
-		 * @param {Object} e things-grid-configured 이벤트
-		 */
-		_initializePaginationBehavior: function(e) {
-			var grid = e.detail;
+          this.fire("things-grid-paginator-configured", grid);
+        }
+      }
+    },
 
-			if (grid && this.paginatable) {
-				var evt = this.fire('things-grid-paginator-configure', grid, {
-					cancelable: true
-				});
-				if (!evt.defaultPrevented) {
-					// infiniteScroll 일 경우 처리
-					if (this.infiniteScroll) {
-						grid.onScrollToBottom = '_gridScrollToBottom';
-						this.listen(this, 'things-grid-data-change', '_infiniteGridDataChangedHandler');
-					}
+    /**
+     * 그리드에서 스크롤이 아래로 향했을 경우 핸들러
+     *
+     * @param {Object} grid
+     */
+    _gridScrollToBottom: function (grid) {
+      var thingsGrid = grid._container_;
 
-					this.fire('things-grid-paginator-configured', grid);
-				}
-			}
-		},
+      if (thingsGrid.totalCount > thingsGrid.pageEndIdx) {
+        thingsGrid.page += 1;
+      }
+    },
 
-		/**
-		 * 그리드에서 스크롤이 아래로 향했을 경우 핸들러
-		 *
-		 * @param {Object} grid
-		 */
-		_gridScrollToBottom: function(grid) {
-			var thingsGrid = grid._container_;
-
-			if (thingsGrid.totalCount > thingsGrid.pageEndIdx) {
-				thingsGrid.page += 1;
-			}
-		},
-
-		/**
-		 * 그리드 데이터가 변경된 경우 핸들러 Override,
-		 * InfiniteScroll인 경우에만 Override한다.
-		 *
-		 * @param {Object} event things-grid-data-change 이벤트
-		 */
-		_infiniteGridDataChangedHandler: function(event) {
-			if (this.infiniteScroll) {
-				event.preventDefault();
-				this.dataSet.appendRows(this.data, 0, -1, false);
-				this.dataSet.clearRowStates();
-				this.fire('things-grid-data-changed', this.data);
-			}
-		}
-	};
-
+    /**
+     * 그리드 데이터가 변경된 경우 핸들러 Override,
+     * InfiniteScroll인 경우에만 Override한다.
+     *
+     * @param {Object} event things-grid-data-change 이벤트
+     */
+    _infiniteGridDataChangedHandler: function (event) {
+      if (this.infiniteScroll) {
+        event.preventDefault();
+        this.dataSet.appendRows(this.data, 0, -1, false);
+        this.dataSet.clearRowStates();
+        this.fire("things-grid-data-changed", this.data);
+      }
+    },
+  };
 </script>

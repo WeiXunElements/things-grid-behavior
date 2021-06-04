@@ -1,32 +1,30 @@
 <!--
 @license
-Copyright © HatioLab Inc. All rights reserved.
+Copyright © 2015-2021 Shenzhen Weixun All rights reserved.
 -->
-<script src='jszip.min.js'></script>
+<script src="jszip.min.js"></script>
 
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/polymer.html" />
 
-<link rel="import" href="./things-grid-config-behavior.html">
-<link rel="import" href="./things-grid-pagination-behavior.html">
-<link rel="import" href="./things-grid-export-behavior.html">
-<link rel="import" href="./things-grid-import-behavior.html">
-<link rel="import" href="./things-grid-addrow-behavior.html">
-<link rel="import" href="./things-grid-soft-deleterow-behavior.html">
-<link rel="import" href="./things-grid-save-behavior.html">
+<link rel="import" href="./things-grid-config-behavior.html" />
+<link rel="import" href="./things-grid-pagination-behavior.html" />
+<link rel="import" href="./things-grid-export-behavior.html" />
+<link rel="import" href="./things-grid-import-behavior.html" />
+<link rel="import" href="./things-grid-addrow-behavior.html" />
+<link rel="import" href="./things-grid-soft-deleterow-behavior.html" />
+<link rel="import" href="./things-grid-save-behavior.html" />
 
 <script>
+  window.Things = window.Things || {};
 
-	window.Things = window.Things || {};
-
-	/**
-	 * 리소스 그리드 Behavior 
-	 *
-	 * @polymerBehavior Things.ResourceGridBehavior
-	 */
-	Things.ResourceGridBehaviorImpl = {
-
-		properties: {
-			/**
+  /**
+   * 리소스 그리드 Behavior
+   *
+   * @polymerBehavior Things.ResourceGridBehavior
+   */
+  Things.ResourceGridBehaviorImpl = {
+    properties: {
+      /**
 			 * Button Group에 표시될 버튼 정보.
 			 * 기본적으로 아래 다섯개의 버튼에 대해서 지원하고 필요한 버튼만 추가시키면 추가된 버튼만 표시된다.
 			 * ex) [ {
@@ -51,73 +49,76 @@ Copyright © HatioLab Inc. All rights reserved.
 					icon: 'icons:file-upload'
 				} ]
 			 */
-			buttons : {
-				type: Array,
-				value: function() {
-					return [ {
-            id: 'export-btn',
-            text: 'export',
-            icon: 'icons:swap-vert'
-          }, {
-            id: 'add-btn',
-            text: 'add',
-            icon: 'icons:add'
-          }, {
-            id: 'delete-btn',
-            text: 'delete',
-            icon: 'icons:delete'
-          }, {
-            id: 'save-btn',
-            text: 'save',
-            icon: 'icons:save'
-          }, {
-            id: 'import-btn',
-            text: 'import',
-            icon: 'icons:file-upload'
-          } ];
-				}
-			},
-		},
+      buttons: {
+        type: Array,
+        value: function () {
+          return [
+            {
+              id: "export-btn",
+              text: "export",
+              icon: "icons:swap-vert",
+            },
+            {
+              id: "add-btn",
+              text: "add",
+              icon: "icons:add",
+            },
+            {
+              id: "delete-btn",
+              text: "delete",
+              icon: "icons:delete",
+            },
+            {
+              id: "save-btn",
+              text: "save",
+              icon: "icons:save",
+            },
+            {
+              id: "import-btn",
+              text: "import",
+              icon: "icons:file-upload",
+            },
+          ];
+        },
+      },
+    },
 
-		listeners: {
-			'things-grid-configure-failed' : '_gridConfigureFailed'
-		},
+    listeners: {
+      "things-grid-configure-failed": "_gridConfigureFailed",
+    },
 
-		observers: [
-			'_toolbarConfigChanged(paginatable, buttons)'
-		],
+    observers: ["_toolbarConfigChanged(paginatable, buttons)"],
 
-		/**
-		 * 툴바 관련 설정 변경시 
-		 *
-		 * @param {Boolean} paginatable
-		 * @param {Array} buttons
-		 */
-		_toolbarConfigChanged: function(paginatable, buttons) {
-			this.enableToolbar = (paginatable || (buttons && buttons.length > 0));
-		},
+    /**
+     * 툴바 관련 설정 변경시
+     *
+     * @param {Boolean} paginatable
+     * @param {Array} buttons
+     */
+    _toolbarConfigChanged: function (paginatable, buttons) {
+      this.enableToolbar = paginatable || (buttons && buttons.length > 0);
+    },
 
-		/**
-		 * Grid 구성이 실패한 후 핸들러
-		 * 
-		 * @param {Object} event things-grid-configure-failed 이벤트 
-		 */
-		_gridConfigureFailed: function(event) {
-			var title = Things.DataGlobal.t('text.grid_config_error');
-			var text = event.detail.error;
-			this.openInfoMsg({ type : 'error', title : title, text : text });
-		}
-	};
+    /**
+     * Grid 구성이 실패한 후 핸들러
+     *
+     * @param {Object} event things-grid-configure-failed 이벤트
+     */
+    _gridConfigureFailed: function (event) {
+      var title = Things.DataGlobal.t("text.grid_config_error");
+      var text = event.detail.error;
+      this.openInfoMsg({ type: "error", title: title, text: text });
+    },
+  };
 
   Things.ResourceGridBehavior = [
     Things.ResourceGridBehaviorImpl,
-		Things.GridConfigBehavior,
-		Things.GridPaginationBehavior,
-		Things.GridImportBehavior,
-		Things.GridExportBehavior,
-		Things.GridAddrowBehavior,
-		Things.GridSoftDeleterowBehavior,
-		Things.GridSaveBehavior
+    Things.GridConfigBehavior,
+    Things.GridPaginationBehavior,
+    Things.GridImportBehavior,
+    Things.GridExportBehavior,
+    Things.GridAddrowBehavior,
+    Things.GridSoftDeleterowBehavior,
+    Things.GridSaveBehavior,
   ];
-
 </script>

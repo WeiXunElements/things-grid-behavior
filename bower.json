@@ -1,8 +1,8 @@
 {
     "name": "things-grid-behavior",
-    "version": "v2.2.25",
+    "version": "v2.2.26",
     "authors": [
-        "Hatio Lab. <heartyoh@hatiolab.com>"
+        "Shenzhen Weixun"
     ],
     "description": "Providing a dataludi grid's behaviors.",
     "keywords": [
@@ -11,8 +11,6 @@
         "seed"
     ],
     "main": "elements.html",
-    "license": "http://license.hatiolab.com/EULA",
-    "homepage": "http://elements.hatiolab.com/",
     "ignore": [
         "/.*",
         "/test/"
